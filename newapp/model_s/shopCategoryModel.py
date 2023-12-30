@@ -43,7 +43,7 @@ class MyCategory(models.Model):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
         uniqueName = (
-            self.shop.unique_shopName + "/" + str(self.name).replace(" ", "_").lower()
+             str(self.name).replace(" ", "_").lower()
         )
         self.unique_name = uniqueName
         # call the parent's save() method

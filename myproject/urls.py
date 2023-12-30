@@ -19,7 +19,7 @@ from django.urls import path
 from django.urls import path, include
 from newapp import views
 from newapp.view_s.locationview import LocationView
-from newapp.view_s.myCategoryView import MyCategoryView,createMyCategory
+from newapp.view_s.myCategoryView import MyCategoryView,createMyCategory,getMyCatgory
 from newapp.view_s.mainCategoryView import getCategory
 from newapp.view_s.shopViews import edit_shop,get_shops
 from django.conf.urls.static import static
@@ -51,6 +51,7 @@ urlpatterns = [
     path("get_main_category/", getCategory),
     path("edit_shop/", edit_shop),
     path("create_my_category/", createMyCategory),
+    path("get_my_category/", getMyCatgory),
     # path('api-auth/', include('rest_framework.urls'))
     # path('product/',views.ProductView.as_view() )
 ]
