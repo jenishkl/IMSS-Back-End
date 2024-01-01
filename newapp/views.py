@@ -4,7 +4,8 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
-from .models import MainCategory, CategoryImage, Products, CustomUser, Location
+from .models import MainCategory, CategoryImage, CustomUser, Location
+from newapp.model_s.productModels import Products
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value, CharField

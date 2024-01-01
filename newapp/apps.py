@@ -8,4 +8,5 @@ class NewappConfig(AppConfig):
     def ready(self):
         # Import the models from the "models" subfolders
         import newapp.model_s.shopCategoryModel
+        import newapp.model_s.productModels
         # import newapp.models.folder2.mymodel2

@@ -6,7 +6,7 @@ from newapp.serializers.shopSerializers import (
 )
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value, CharField
 from django.db.models.functions import Power, Sin, Cos, ASin, Sqrt
-from newapp.models import MainCategory, CategoryImage, Products, CustomUser, Location
+from newapp.models import MainCategory, CategoryImage, CustomUser, Location
 from newapp.serializer import (
     MainCategorySerializer,
     MainCategorySerializer2,

@@ -1,4 +1,5 @@
-from .models import MainCategory, CategoryImage, Products, CustomUser, Location
+from .models import MainCategory, CategoryImage,  CustomUser, Location
+from newapp.model_s.productModels import Products
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 

@@ -20,6 +20,7 @@ from django.urls import path, include
 from newapp import views
 from newapp.view_s.locationview import LocationView
 from newapp.view_s.myCategoryView import MyCategoryView,createMyCategory,getMyCatgory
+from newapp.view_s.productView import ProductsView
 from newapp.view_s.mainCategoryView import getCategory
 from newapp.view_s.shopViews import edit_shop,get_shops
 from django.conf.urls.static import static
@@ -30,7 +31,7 @@ router = routers.DefaultRouter()
 # router.register('product', views.ProductView, 'product')
 # router.register("maincategory", views.MainCategoryView, "maincategory")
 router.register("shopregister", views.ShopRegisterView, "shopregister")
-router.register("products", views.ProductsView, "products")
+router.register("products", ProductsView, "products")
 router.register("location", LocationView, "location")
 router.register("mycategory", MyCategoryView, "mycategory")
 # router.register('getshops', views.get_shops, basename='getshops')
