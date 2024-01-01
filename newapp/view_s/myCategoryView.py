@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from newapp.model_s.shopCategoryModel import MyCategory
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value
 from newapp.serializers.mycategorySerializer import (
-    MyCategorySerializer,MyCategorySerializer2
+    MyCategorySerializer,MyCategorySerializer2,CreateMyCategorySerializer
     # NestedMyCategorySerializer,
 )
 from rest_framework.decorators import api_view
@@ -16,29 +16,51 @@ import json
 User = get_user_model()
 
 
-@api_view(["POST"])
+@api_view(["POST","PUT","DELETE"])
 def createMyCategory(request):
     try:
-        print(request.data,"Data")
-        serializer_class = MyCategorySerializer(data=request.data)
-        # if(serializer_class.is_valid()):
-        #     serializer_class.save()
+        if request.method=="POST":
+            print(request.data,"Data")
+            serializer_class = CreateMyCategorySerializer(data=request.data)
+            print("jjk")
+            if(serializer_class.is_valid()):
+                print("LKJH")
+                serializer_class.save()
+                return Response(serializer_class.data)
+
+
+        # if serializer_class.is_valid():
+        #     print(serializer_class.data)
+        #     parent=serializer_class.data["parent"] if("parent" in serializer_class.data)else None
+        #     print(parent)
+        #     custom_user_instance = User.objects.get(id=serializer_class.data["shop"])
+        #     my_category_instance = MyCategory.objects.get(id=serializer_class.data["parent"])
+        #     query = MyCategory.objects.create(
+        #         name=serializer_class.data["name"],
+        #         parent=my_category_instance if(my_category_instance)else None ,
+        #         shop=custom_user_instance,
+        #     )
+        #     serializer_class = MyCategorySerializer2(query)
         #     return Response(serializer_class.data)
-        if serializer_class.is_valid():
-            print(serializer_class.data)
-            parent=serializer_class.data["parent"] if("parent" in serializer_class.data)else None
-            print(parent)
-            custom_user_instance = User.objects.get(id=serializer_class.data["shop"])
-            my_category_instance = MyCategory.objects.get(id=serializer_class.data["parent"])
-            query = MyCategory.objects.create(
-                name=serializer_class.data["name"],
-                parent=my_category_instance if(my_category_instance)else None ,
-                shop=custom_user_instance,
-            )
-            serializer_class = MyCategorySerializer(query)
-            return Response(serializer_class.data)
-        else:
-            return Response(serializer_class.errors, status=400)
+        
+            else:
+                print(":JKL")
+                return Response(serializer_class.errors, status=400)
+        if request.method=="PUT":
+            queryset = MyCategory.objects.get(id=request.data["id"])
+            if queryset:
+                serializer = CreateMyCategorySerializer(queryset, data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    return Response(serializer.data)
+        if request.method=="DELETE":
+            print(request.GET.get("id"))
+            queryset = MyCategory.objects.get(id=request.GET.get("id"))
+            if queryset:
+                queryset.delete()
+                return Response("Deleted")
+
+
     except Exception as e:
         return Response(str(e), status=400)
 
@@ -47,7 +69,17 @@ def getMyCatgory(request):
         MyCategorys = []
         shop =request.GET.get("shop")
         category =request.GET.get("category")
+        parent =request.GET.get("parent")
+            
         getCategory = MyCategory.objects.filter(shop__unique_shopName=shop)
+        print(shop,parent,"BOTH")
+        if(parent):
+            if(parent=="null"):
+                 parent = None
+            nullParents = getCategory.filter(parent__unique_name=parent)
+            single = getCategory.filter(unique_name=parent)
+            serialized_data=MyCategorySerializer2(nullParents, many=True).data
+            return Response({"categories":serialized_data,"category":single.values().first()})
         if(category is None):
             nullParents = getCategory.filter(parent=None)
             serialized_data=MyCategorySerializer2(nullParents, many=True).data
@@ -79,7 +111,7 @@ def getMyCatgory(request):
 
 class MyCategoryView(viewsets.ModelViewSet):
     queryset = MyCategory.objects.all()
-    serializer_class = MyCategorySerializer2
+    serializer_class = CreateMyCategorySerializer
 
     # def list(self, request):
     #     print((self.request, "JKJJH"))

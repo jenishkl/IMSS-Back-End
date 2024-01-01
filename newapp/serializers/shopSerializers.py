@@ -95,6 +95,7 @@ class ShopViewSerializer(serializers.ModelSerializer):
     background_image = serializers.SerializerMethodField(
         "get_image_field_url", required=False, read_only=True
     )
+    Km=serializers.FloatField(read_only=True)
     class Meta:
         model = CustomUser
         fields = "__all__"

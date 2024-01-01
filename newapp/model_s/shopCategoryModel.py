@@ -38,13 +38,38 @@ class MyCategory(models.Model):
     class Meta:
         managed = True
         db_table = "myCategory"
-
+        
+    def __str__(self):
+        return str(self.shop.id)
+    def delete(self, *args, **kwargs):
+        print("hhhh")
+        # Remove the file from storage before deleting the model instance
+        storage, path = self.image.storage, self.image.path
+        if storage and path:
+            if storage.exists(path):
+                storage.delete(path)
+        super(MyCategory, self).delete(*args, **kwargs)
     def save(self, *args, **kwargs):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
+        print("juyhgg")
         uniqueName = (
              str(self.name).replace(" ", "_").lower()
         )
         self.unique_name = uniqueName
         # call the parent's save() method
+        print(self.pk,"SELF")
+        if self.image is not None and self.pk:
+            print(self.image,"DDD")
+            old_instance = MyCategory.objects.get(pk=self.pk)
+            old_image = old_instance.image
+            new_image = self.image
+
+            # Check if the image has changed
+            if old_image and old_image != new_image:
+                # Delete the old image file from storage
+                if os.path.isfile(old_image.path):
+                    os.remove(old_image.path)
+
         super(MyCategory, self).save(*args, **kwargs)
+        
