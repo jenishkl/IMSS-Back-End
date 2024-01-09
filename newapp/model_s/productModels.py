@@ -1,4 +1,5 @@
 from django.db import models
+import os
 choices = [
     ("KG", "Kilograms"),
     ("L", "Litre"),
@@ -76,3 +77,24 @@ class Products(models.Model):
     # mesurements=serializers.ChoiceField(choices=(("KG","Kilograms"),("L","Litre"),("M","Meter"),("KM","KiloMeter"),("IN","Inch"),("CM","CentiMeter"),("F","Feet"),("T","Ton"),("Y","Yard"),("CS","CustomSizes")))
     # startDate=serializers.DateTimeField(required=True,allow_null=False,error_messages = {"required":"Data should be unique"} )
     # endDate=serializers.DateTimeField(required=True,allow_null=False,error_messages = {"required":"Data should be unique"} )
+
+
+
+
+def get_upload_path(instance, filename):
+    print(instance, "instance")
+    print(filename, "filename")
+    return os.path.join("product", "%s" % instance, filename)
+
+
+class ProductImages(models.Model):
+      product = models.ForeignKey(Products,unique=False, on_delete=models.CASCADE, related_name="images")
+      image = models.ImageField(
+        unique=False, blank=True, null=True, upload_to=get_upload_path
+    )
+      aspect_ratio=models.FloatField(unique=False,null=True,blank=True)
+      primary=models.BooleanField()
+
+
+      def __str__(self):
+            return str(self.product.shop_name.shopName)
