@@ -14,7 +14,7 @@ from newapp.serializers.locationSerializer import (
 
 class LocationView(viewsets.ModelViewSet):
     queryset = Location.objects.all()
-    serializer_class = LocationSerializer
+    serializer_class = LocationSerializer2
 
     def list(self, request):
         print((self.request, "JKJJH"))

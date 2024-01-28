@@ -31,7 +31,7 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import pagination
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth import get_user_model
-from newapp.serializers.shopSerializers import ShopUpdateSerializer
+from newapp.serializers.shopSerializers import ShopUpdateSerializer,ShopCreateSerializer
 
 User = get_user_model()
 
@@ -110,7 +110,7 @@ class MainCategoryView(viewsets.ModelViewSet):
 
 
 class ShopRegisterView(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
+    queryset = User.objects.all()
     serializer_class = RegisterSerializer
     lookup_field = "unique_shopName"
     # def list(self, request):

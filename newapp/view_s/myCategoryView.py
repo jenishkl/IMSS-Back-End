@@ -73,7 +73,7 @@ def getMyCatgory(request):
             
         getCategory = MyCategory.objects.filter(shop__unique_shopName=shop)
         print(shop,parent,"BOTH")
-        if(parent):
+        if(parent is not None):
             if(parent=="null"):
                  parent = None
             nullParents = getCategory.filter(parent__unique_name=parent)
@@ -99,7 +99,7 @@ def getMyCatgory(request):
                 # print((dict(serialized_dat[0])['options']),"PARAMS")
                 if(True):
                     for item in serialized_dat:
-                        MyCategorys.append({"label": item["name"],"value":item["unique_name"], "options": item["options"]})
+                        MyCategorys.append({"label": item["name"],"value":item["unique_name"],"id":item["id"], "options": item["options"]})
                         if((dict(serialized_dat[0])["parent"]) is not None):
                             interate([item["parent"]])
 

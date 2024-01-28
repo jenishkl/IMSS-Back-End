@@ -19,17 +19,17 @@ from django.urls import path
 from django.urls import path, include
 from newapp import views
 from newapp.view_s.locationview import LocationView
-from newapp.view_s.myCategoryView import MyCategoryView,createMyCategory,getMyCatgory
-from newapp.view_s.productView import ProductsView, ProductImageView
+from newapp.view_s.myCategoryView import MyCategoryView, createMyCategory, getMyCatgory
+from newapp.view_s.productView import ProductsView, ProductImageView, createProducts, getProducts, addProductImage
 from newapp.view_s.mainCategoryView import getCategory
-from newapp.view_s.shopViews import edit_shop,get_shops
+from newapp.view_s.shopViews import edit_shop, get_shops
 from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework import routers
 
 router = routers.DefaultRouter()
 # router.register('product', views.ProductView, 'product')
-# router.register("maincategory", views.MainCategoryView, "maincategory")
+router.register("maincategory", views.MainCategoryView, "maincategory")
 router.register("shopregister", views.ShopRegisterView, "shopregister")
 router.register("products", ProductsView, "products")
 router.register("location", LocationView, "location")
@@ -54,6 +54,9 @@ urlpatterns = [
     path("edit_shop/", edit_shop),
     path("create_my_category/", createMyCategory),
     path("get_my_category/", getMyCatgory),
+    path("product/", createProducts),
+    path("get_products/", getProducts),
+    path("add_product_image/", addProductImage),
     # path('api-auth/', include('rest_framework.urls'))
     # path('product/',views.ProductView.as_view() )
 ]

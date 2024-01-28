@@ -7,9 +7,9 @@ dat = True
 
 
 class LocationSerializer2(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Location.objects.all(), required=False
-    )
+    # id = serializers.PrimaryKeyRelatedField(
+    #     queryset=Location.objects.all(), required=False
+    # )
     unique_name = serializers.CharField(read_only=True)
     # parent = serializers.PrimaryKeyRelatedField(
     #     queryset=Location.objects.all(), required=False

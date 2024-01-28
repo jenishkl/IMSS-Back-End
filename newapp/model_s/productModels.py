@@ -13,6 +13,7 @@ choices = [
     ("CS", "CustomSizes"),
 ]
 from newapp.models import CustomUser, MainCategory
+from newapp.model_s.shopCategoryModel import MyCategory
 class Products(models.Model):
     shop_name = models.ForeignKey(
         CustomUser, unique=False, on_delete=models.PROTECT, related_name="shop_name"
@@ -31,8 +32,8 @@ class Products(models.Model):
     stock = models.FloatField()
     is_have_size = models.BooleanField(default=False)
     is_deliverable = models.BooleanField(default=False)
-    deliverable_range = models.FloatField()
-    delivery_charge_per_km = models.FloatField()
+    deliverable_range = models.FloatField(null=True,blank=True)
+    delivery_charge_per_km = models.FloatField(null=True,blank=True)
     measurement = models.CharField(
         max_length=100, choices=choices, unique=False, blank=True, null=True
     )
@@ -40,9 +41,19 @@ class Products(models.Model):
     end_date = models.DateField(null=True)
     main_category = models.ForeignKey(
         MainCategory,
-        unique=False,
-        on_delete=models.PROTECT,
-        related_name="main_category",
+        # unique=False,
+        on_delete=models.SET_NULL,
+        null=True,
+        # blank=True
+        # related_name="main_category",
+    )
+    my_category = models.ManyToManyField(
+        MyCategory,
+        # unique=False,
+        # null=True,
+        # blank=True,
+        # on_delete=models.SET_NULL,
+        # related_name="my_category",
     )
 
     class Meta:
@@ -97,4 +108,4 @@ class ProductImages(models.Model):
 
 
       def __str__(self):
-            return str(self.product.shop_name.shopName)
+            return str(self.product.shop_name.id)

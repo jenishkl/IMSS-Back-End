@@ -177,7 +177,7 @@ class CustomUser(AbstractUser):
         blank=True,
     )
 
-    USERNAME_FIELD = "unique_shopName"
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
@@ -194,26 +194,26 @@ class CustomUser(AbstractUser):
         )
         # self.pop("password2")
         # call the parent's save() method
-        if self.company_logo is not None:
-            old_instance = CustomUser.objects.get(pk=self.pk)
-            old_image = old_instance.company_logo
-            new_image = self.company_logo
+        # if self.company_logo is not None:
+        #     old_instance = CustomUser.objects.get(pk=self.pk)
+        #     old_image = old_instance.company_logo
+        #     new_image = self.company_logo
 
-            # Check if the image has changed
-            if old_image and old_image != new_image:
-                # Delete the old image file from storage
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
-        if self.background_image is not None:
-            old_instance = CustomUser.objects.get(pk=self.pk)
-            old_image = old_instance.background_image
-            new_image = self.background_image
+        #     # Check if the image has changed
+        #     if old_image and old_image != new_image:
+        #         # Delete the old image file from storage
+        #         if os.path.isfile(old_image.path):
+        #             os.remove(old_image.path)
+        # if self.background_image is not None:
+        #     old_instance = CustomUser.objects.get(pk=self.pk)
+        #     old_image = old_instance.background_image
+        #     new_image = self.background_image
 
-            # Check if the image has changed
-            if old_image and old_image != new_image:
-                # Delete the old image file from storage
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
+        #     # Check if the image has changed
+        #     if old_image and old_image != new_image:
+        #         # Delete the old image file from storage
+        #         if os.path.isfile(old_image.path):
+        #             os.remove(old_image.path)
 
         super(CustomUser, self).save(*args, **kwargs)
         # try:
@@ -223,84 +223,23 @@ class CustomUser(AbstractUser):
         # except: pass # when new photo then we do nothing, normal case
         # super(Photo, self).save(*args, **kwargs)
 
-    def delete_old_image(self):
-        # Check if the instance has an ID (i.e., it's already saved in the database)
-        print(self, "SELF")
-        if self.pk:
-            old_instance = CustomUser.objects.get(pk=self.pk)
-            old_image = old_instance.company_logo
-            new_image = self.company_logo
+    # def delete_old_image(self):
+    #     # Check if the instance has an ID (i.e., it's already saved in the database)
+    #     print(self, "SELF")
+    #     if self.pk:
+    #         old_instance = CustomUser.objects.get(pk=self.pk)
+    #         old_image = old_instance.company_logo
+    #         new_image = self.company_logo
 
-            # Check if the image has changed
-            if old_image and old_image != new_image:
-                # Delete the old image file from storage
-                if os.path.isfile(old_image.path):
-                    os.remove(old_image.path)
+    #         # Check if the image has changed
+    #         if old_image and old_image != new_image:
+    #             # Delete the old image file from storage
+    #             if os.path.isfile(old_image.path):
+    #                 os.remove(old_image.path)
 
     # class Meta:
     #     managed = True
     #     db_table = 'auth_user'
-
-
-class ShopProfile(models.Model):
-    #     STATES =[
-    #     ("AN","Andaman and Nicobar Islands"),
-    #     ("AP","Andhra Pradesh"),
-    #     ("AR","Arunachal Pradesh"),
-    #     ("AS","Assam"),
-    #     ("BR","Bihar"),
-    #     ("CG","Chandigarh"),
-    #     ("CH","Chhattisgarh"),
-    #     ("DN","Dadra and Nagar Haveli"),
-    #     ("DD","Daman and Diu"),
-    #     ("DL","Delhi"),
-    #     ("GA","Goa"),
-    #     ("GJ","Gujarat"),
-    #     ("HR","Haryana"),
-    #     ("HP","Himachal Pradesh"),
-    #     ("JK","Jammu and Kashmir"),
-    #     ("JH","Jharkhand"),
-    #     ("KA","Karnataka"),
-    #     ("KL","Kerala"),
-    #     ("LA","Ladakh"),
-    #     ("LD","Lakshadweep"),
-    #     ("MP","Madhya Pradesh"),
-    #     ("MH","Maharashtra"),
-    #     ("MN","Manipur"),
-    #     ("ML","Meghalaya"),
-    #     ("MZ","Mizoram"),
-    #     ("NL","Nagaland"),
-    #     ("OR","Odisha"),
-    #     ("PY","Puducherry"),
-    #     ("PB","Punjab"),
-    #     ("RJ","Rajasthan"),
-    #     ("SK","Sikkim"),
-    #     ("TN","Tamil Nadu"),
-    #     ("TS","Telangana"),
-    #     ("TR","Tripura"),
-    #     ("UP","Uttar Pradesh"),
-    #     ("UK","Uttarakhand"),
-    #     ("WB","West Bengal")
-    # ]
-
-    user_id = models.OneToOneField(
-        CustomUser, null=True, blank=False, on_delete=models.CASCADE
-    )
-    shop_name = models.CharField(
-        unique=True, null=False, max_length=50, blank=False, default=""
-    )
-    company_logo = models.ImageField(blank=True, null=True, upload_to="logo")
-    backgroud_image = models.ImageField(
-        unique=True, blank=True, null=True, upload_to="background"
-    )
-    location = models.ForeignKey(
-        Location, null=True, blank=True, on_delete=models.CASCADE
-    )
-    address = models.CharField(unique=False, null=True, max_length=50, blank=True)
-    lat = models.CharField(unique=False, null=True, max_length=100, blank=True)
-    long = models.CharField(unique=False, null=True, max_length=100, blank=True)
-    about = models.CharField(unique=False, null=True, max_length=100, blank=True)
-    main_category = models.ForeignKey(MainCategory, on_delete=models.PROTECT)
 
 
 
