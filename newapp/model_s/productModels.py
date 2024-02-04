@@ -109,3 +109,17 @@ class ProductImages(models.Model):
 
       def __str__(self):
             return str(self.product.shop_name.id)
+    
+      def save(self, *args, **kwargs):
+         if self.image is not None and self.pk is not None:
+            old_instance = ProductImages.objects.get(pk=self.pk)
+            old_image = old_instance.image
+            new_image = self.image
+
+            # Check if the image has changed
+            if old_image and old_image != new_image:
+                # Delete the old image file from storage
+                if os.path.isfile(old_image.path):
+                    os.remove(old_image.path)
+                
+         super(ProductImages, self).save(*args, **kwargs)

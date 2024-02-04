@@ -6,7 +6,8 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import api_view
 from newapp.serializers.productSerializer import (
     ProductsSerializer,
-    ProductImageSerializer
+    ProductImageSerializer,
+    ProductsViewSerializer
     # NestedProductsSerializer,
 )
 from django.db import models
@@ -26,15 +27,6 @@ class ProductsView(viewsets.ModelViewSet):
 
 
 
-from typing import Any, Dict, Set, cast
-from rest_framework.parsers import MultiPartParser,DataAndFiles
-from rest_framework.exceptions import ValidationError
-from django.http import QueryDict
-from rest_framework.utils.encoders import JSONEncoder
-from rest_framework.utils.serializer_helpers import ReturnDict, ReturnList
-# from werkzeug.datastructures import MultiDict
-# from werkzeug.http import parse_options_header
-from django.http.request import QueryDict as DjangoQueryDict
 
 # class MultipartFormencodeParser(parsers.MultiPartParser):
 
@@ -101,15 +93,18 @@ class ProductImageView(viewsets.ModelViewSet):
 def getProducts(request):
     try:
         category = request.GET.get("category")
+        product = request.GET.get("product")
         shop = request.GET.get("shop")
         getshop=User.objects.filter(Q(unique_shopName=shop)).distinct()
         print(getshop.values()[0]['id'])
         query=Products.objects.all().prefetch_related(models.Prefetch(
         "images", queryset=ProductImages.objects.order_by("-primary")))
         query = query.filter(shop_name=getshop.values()[0]['id'])
-        sdata = ProductsSerializer(query, many=True)
+        sdata = ProductsViewSerializer(query, many=True)
 
-        return Response(sdata.data)
+        # return Response(sdata.data)
+        if product is not None:
+            query=query.filter(id=product)
         if category:
                 target_categories = MyCategory.objects.get(unique_name=category)
                 category_query = Q(my_category=target_categories)
@@ -125,7 +120,7 @@ def getProducts(request):
                         # if location:
                         #     category_query &= location_query
                 query = query.filter(category_query).distinct()
-        sdata = ProductsSerializer(query, many=True)
+        sdata = ProductsViewSerializer(query, many=True)
 
         return Response(sdata.data)
     except Exception as e:
