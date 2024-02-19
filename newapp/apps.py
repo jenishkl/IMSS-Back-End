@@ -9,4 +9,5 @@ class NewappConfig(AppConfig):
         # Import the models from the "models" subfolders
         import newapp.model_s.shopCategoryModel
         import newapp.model_s.productModels
+        import newapp.model_s.checkoutModel
         # import newapp.models.folder2.mymodel2

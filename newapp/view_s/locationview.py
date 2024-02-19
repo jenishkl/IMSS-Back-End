@@ -67,3 +67,37 @@ class LocationView(viewsets.ModelViewSet):
             interate(serialized_data)
             print(locations.reverse(), "LOCATIONS")
             return Response(locations)
+
+
+
+
+
+@api_view(["GET"])
+def filterLocation(request, pk):
+    locations = []
+    if(pk=="null"):
+        nullParents = Location.objects.filter(parent=None)
+        serialized_data=LocationSerializer2(nullParents, many=True).data
+        return Response([{"options":serialized_data}])
+    else:
+        root_categories = Location.objects.filter(unique_name=pk)
+        root_categories2 = Location.objects.filter(parent__unique_name=pk)
+        serialized_data = LocationSerializer(root_categories, many=True).data
+        childrens = LocationSerializer2(root_categories2, many=True).data
+        locations.append({"options": childrens})
+    # queryset = Location.objects.all().prefetch_related("category_images")
+    # serializer = LocationSerializer(queryset, many=True)
+    
+    # for item in childrens:
+    
+        def interate(serialized_dat):
+            # print((dict(serialized_dat[0])['options']),"PARAMS")
+            if(True):
+                for item in serialized_dat:
+                    locations.append({"label": item["name"],"value":item["unique_name"], "options": item["options"]})
+                    if((dict(serialized_dat[0])["parent"]) is not None):
+                        interate([item["parent"]])
+
+        interate(serialized_data)
+        print(locations.reverse(), "LOCATIONS")
+        return Response(locations)

@@ -90,6 +90,7 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault("is_shop", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
+        extra_fields.setdefault("is_customer", True)
 
         if extra_fields.get("is_shop") is not True:
             raise ValueError(_("Superuser must have is_shop=True."))
@@ -146,9 +147,9 @@ def banner_upload_path(instance, filename):
 
 
 class CustomUser(AbstractUser):
-    first_name = None
-    last_name = None
-    is_staff = None
+    # first_name = None
+    # last_name = None
+    # is_staff = None
     username = models.CharField(null=True, max_length=50, blank=True)
     email = models.EmailField(_("email address"), unique=True)
     is_shop = models.BooleanField(default=False)
@@ -240,9 +241,6 @@ class CustomUser(AbstractUser):
     # class Meta:
     #     managed = True
     #     db_table = 'auth_user'
-
-
-
 
 
 #     class Meta:

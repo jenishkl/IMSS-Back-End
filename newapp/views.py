@@ -31,15 +31,71 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import pagination
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.contrib.auth import get_user_model
-from newapp.serializers.shopSerializers import ShopUpdateSerializer,ShopCreateSerializer
+from newapp.serializers.shopSerializers import (
+    ShopUpdateSerializer,
+    ShopCreateSerializer,
+)
+from django.core.serializers import serialize
 
 User = get_user_model()
+
+
+# Custom login view
+
+import jwt
+import datetime
+from django.contrib.auth import authenticate
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
+import json
+
+
+@csrf_exempt
+@api_view(["POST"])
+def custom_login(request):
+    if request.method == "POST":
+        username = request.data.get("username")
+        password = request.data.get("password")
+        print(username)
+        print(password)
+        user = authenticate(username=username, password=password)
+
+        print(user)
+        # let userData=User.
+        if user:
+            # Generate JWT token
+            userData = User.objects.filter(email=username).values(
+                "unique_shopName",
+                "shopName",
+                "is_customer",
+                "email",
+                "is_superuser",
+                "is_active",
+                "is_staff",
+            )
+            # data = self.get_queryset()
+            payload = {
+                "user_id": user.id,
+                "username": user.username,
+                "unique_shopName": user.unique_shopName,
+                "exp": datetime.datetime.utcnow()
+                + datetime.timedelta(minutes=30),  # Token expiration time
+            }
+            token = jwt.encode(payload, "settings.SECRET_KEY", algorithm="HS256")
+
+            return JsonResponse({"token": token, "userDetails": (list(userData)[0])})
+        else:
+            return JsonResponse({"error": "Invalid username or password"}, status=400)
+    else:
+        return JsonResponse({"error": "Only POST requests are allowed"}, status=405)
 
 
 # Create your views here.
 class MainCategoryView(viewsets.ModelViewSet):
     queryset = MainCategory.objects.all().prefetch_related("category_images")
     serializer_class = MainCategorySerializer2
+    # permission_classes = [permissions.IsAdminUser]
 
     def list(self, request):
         root_categories = MainCategory.objects.filter(parent=None)
