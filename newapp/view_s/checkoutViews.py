@@ -10,7 +10,7 @@ from newapp.serializers.productSerializer import ProductsSerializer
 from newapp.serializers.productSerializer import ProductsViewSerializer
 from newapp.serializers.shopSerializers import ShopViewSerializer
 from newapp.model_s.checkoutModel import Kart, Order
-from newapp.serializers.checkoutSerializer import KartSerializer,OrderSerializer
+from newapp.serializers.checkoutSerializer import KartSerializer, OrderSerializer
 import math
 
 User = get_user_model()
@@ -24,9 +24,12 @@ User = get_user_model()
 class KartView(viewsets.ModelViewSet):
     queryset = Kart.objects.all()
     serializer_class = KartSerializer
+
+
 class OrderView(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+
 
 @api_view(["POST"])
 def getCheckOut(request):
@@ -108,3 +111,7 @@ def getCheckOut(request):
     except Exception as e:
         Response(str(e))
         print(e)
+
+
+# @api_view(['POST'])
+# def

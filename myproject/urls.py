@@ -65,6 +65,7 @@ from rest_framework import authentication, permissions
 #     # Replace the serializer with your custom
 #     serializer_class = MyTokenObtainPairSerializer
 urlpatterns = [
+    # path("", include("newapp.routing.urls")),
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # MY CATEGORY
@@ -96,3 +97,27 @@ urlpatterns = [
 ]
 # urlpatterns=router.urls
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# # routing.py
+# from django.urls import re_path
+# from . import consumer
+
+# websocket_urlpatterns = [
+#     re_path(r"ws/chat/$", consumer.ChatConsumer.as_asgi()),
+# ]
+
+# myapp/routing.py
+
+# from django.urls import path, re_path
+# from channels.routing import ProtocolTypeRouter, URLRouter
+# from channels.auth import AuthMiddlewareStack
+# from ..newapp.consumer import ChatConsumer
+
+# websocket_urlpatterns = [
+#     re_path(r"ws/chat/", ChatConsumer.as_asgi()),
+# ]
+
+# application = ProtocolTypeRouter(
+#     {
+#         "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+#     }
+# )
