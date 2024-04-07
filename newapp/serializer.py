@@ -270,4 +270,4 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_superuser'] = user.is_superuser
         token['is_staff'] = user.is_staff
 
-        return toke
+        return "toke"

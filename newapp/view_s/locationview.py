@@ -15,6 +15,7 @@ from newapp.serializers.locationSerializer import (
 class LocationView(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer2
+    # permission_classes = [permissions.IsAdminUser]
 
     def list(self, request):
         print((self.request, "JKJJH"))

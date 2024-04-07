@@ -95,11 +95,11 @@ def getProducts(request):
         category = request.GET.get("category")
         product = request.GET.get("product")
         shop = request.GET.get("shop")
-        getshop=User.objects.filter(Q(unique_shopName=shop)).distinct()
-        print(getshop.values()[0]['id'])
-        query=Products.objects.all().prefetch_related(models.Prefetch(
+        query = Products.objects.filter(shop_name=shop)
+        # getshop=User.objects.filter(Q(unique_shopName=shop)).distinct()
+        query=query.prefetch_related(models.Prefetch(
         "images", queryset=ProductImages.objects.order_by("-primary")))
-        query = query.filter(shop_name=getshop.values()[0]['id'])
+        query = query.filter(shop_name=shop)
         sdata = ProductsViewSerializer(query, many=True)
 
         # return Response(sdata.data)

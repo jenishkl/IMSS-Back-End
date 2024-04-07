@@ -30,7 +30,7 @@ from newapp.view_s.productView import (
     addProductImage,
 )
 from newapp.view_s.mainCategoryView import getCategory, filterMainCategory
-from newapp.view_s.shopViews import edit_shop, get_shops
+from newapp.view_s.shopViews import edit_shop, get_shops,create_shop,ShopUpdateView,getShop
 from newapp.view_s.checkoutViews import getCheckOut
 from django.conf.urls.static import static
 from django.conf import settings
@@ -41,10 +41,11 @@ router = routers.DefaultRouter()
 # router.register('product', views.ProductView, 'product')
 router.register("maincategory", views.MainCategoryView, "maincategory")
 router.register("shopregister", views.ShopRegisterView, "shopregister")
+router.register("shop", ShopUpdateView, "shop")
 router.register("products", ProductsView, "products")
 router.register("location", LocationView, "location")
 router.register("mycategory", MyCategoryView, "mycategory")
-router.register("pimage", ProductImageView, "pimage")
+router.register("productimage", ProductImageView, "productimage")
 router.register("kart", KartView, "kart")
 router.register("order", OrderView, "order")
 # router.register('getshops', views.get_shops, basename='getshops')
@@ -65,16 +66,18 @@ from rest_framework import authentication, permissions
 #     # Replace the serializer with your custom
 #     serializer_class = MyTokenObtainPairSerializer
 urlpatterns = [
+    path("__reload__/", include("django_browser_reload.urls")),
     # path("", include("newapp.routing.urls")),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/", views.CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # MY CATEGORY
     path("get_main_category/", getCategory),
     path("filter-main-category/<str:pk>/", filterMainCategory),
     # LOCATION
-    path("filter-/<str:pk>/", filterLocation),
+    path("filter-location/<str:pk>/", filterLocation),
     #
     path("login/", views.custom_login, name="login"),
+    path("register/", create_shop, name="register"),
     path("admin/", admin.site.urls),
     path(
         "",
@@ -84,6 +87,10 @@ urlpatterns = [
     path(
         "getshops/",
         get_shops,
+    ),
+    path(
+        "viewshop/<str:pk>/",
+        getShop,
     ),
     path("edit_shop/", edit_shop),
     path("create_my_category/", createMyCategory),

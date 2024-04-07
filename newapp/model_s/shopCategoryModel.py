@@ -22,8 +22,8 @@ class MyCategory(models.Model):
         max_length=50,
         blank=True,
     )
-    name = models.CharField(unique=True, null=False, max_length=50, blank=False)
-    unique_name = models.CharField(unique=True, null=False, max_length=50, blank=False)
+    name = models.CharField(unique=False, null=False, max_length=50, blank=False)
+    unique_name = models.CharField(unique=False, null=False, max_length=50, blank=False)
     shop = models.ForeignKey(
         User,
         unique=False,

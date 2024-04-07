@@ -1,3 +1,4 @@
+import logging
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from newapp.serializers.shopSerializers import (
@@ -17,10 +18,20 @@ from newapp.serializer import (
 )
 from newapp.serializers.shopSerializers import ShopViewSerializer
 from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 
 User = get_user_model()
 import os
 import math
+logger = logging.getLogger(__name__)
+from rest_framework import status, viewsets
+
+
+
+class ShopUpdateView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = ShopUpdateSerializer
+
 
 
 @api_view(["GET"])
@@ -32,24 +43,44 @@ def create_shop(request):
         return Response({"message": "Got some data!", "data": str(e)}, status=400)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def create_shop(request):
     try:
-        serialized_data = ShopCreateSerializer()
+        logger.info("hjk")
+        username = request.data.get("username")
+        email = request.data.get("email")
+        password = request.data.get("password")
+        password2 = request.data.get("password2")
+        if(password!=password2):
+            raise Exception('Password did not match')
+        
+        
+        user =User.objects.create(
+            username=username,
+            email=email,
+            )
+        print(password)
+        user.set_password(password)
+        user.save()
+        # serialized_data = ShopCreateSerializer()
         return Response({"message": "Hello, world!"})
     except Exception as e:
-        return Response({"message": "Got some data!", "data": str(e)}, status=400)
+        return Response({"message": str(e) }, status=400)
 
 
 @api_view(["PUT"])
 def edit_shop(request):
     try:
-        print(request.data["compnay_logo"])
-        serialized_data = ShopUpdateSerializer(request.data).data
+        query =User.objects.all()
+        serialized_data = ShopUpdateSerializer(query,data=request.data,partial=True)
+        if(serialized_data.is_valid()):
+            serialized_data.save()
+            return Response(serialized_data.data)
+
         print(serialized_data, "SDDFFGG")
         old_instance = User.objects.filter(id=serialized_data["id"])
-        # old_image = old_instance['company_logo']
-        new_image = serialized_data["company_logo"]
+        # old_image = old_instance['shop_logo']
+        new_image = serialized_data["shop_logo"]
         print(new_image)
         # Check if the image has changed
         # if old_image and old_image != new_image:
@@ -57,12 +88,11 @@ def edit_shop(request):
         #     if os.path.isfile(old_image.path):
         #         os.remove(old_image.path)
         # class Meta:
-        old_instance = old_instance.update(company_logo=serialized_data["company_logo"])
+        # old_instance = old_instance.update(shop_logo=serialized_data["shop_logo"])
         # old_instance.save()
-        serialized_data = ShopUpdateSerializer(old_instance).data
-        return Response(serialized_data)
+        # serialized_data = ShopUpdateSerializer(old_instance).data
     except Exception as e:
-        return Response({"message": "Got some data!", "data": str(e)}, status=400)
+        return Response({'error':str(e)}, status=400)
 
 
 @api_view(["GET"])
@@ -78,6 +108,7 @@ def get_shops(request):
         address = request.GET.get("address")
         lat = request.GET.get("lat")
         lon1 = request.GET.get("lon")
+        is_customer = request.GET.get("is_customer")
         # print(lat,lon1,city)
         # city = reques
         if request.method == "GET":
@@ -154,6 +185,13 @@ def get_shops(request):
         sdata = ShopViewSerializer(query, many=True)
 
         return Response(sdata.data)
-        return Response({"message": "Hello, world!"})
     except Exception as e:
         return Response({"message": "Got some data!", "data": str(e)}, status=400)
+
+
+
+
+@api_view(["GET"])
+def getShop(request,pk):
+    query= User.objects.filter(id=pk).values().first()
+    return Response(query)

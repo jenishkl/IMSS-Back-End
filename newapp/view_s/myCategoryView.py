@@ -71,15 +71,19 @@ def getMyCatgory(request):
         category =request.GET.get("category")
         parent =request.GET.get("parent")
             
-        getCategory = MyCategory.objects.filter(shop__unique_shopName=shop)
+        getCategory = MyCategory.objects.filter(shop=shop)
         print(shop,parent,"BOTH")
         if(parent is not None):
             if(parent=="null"):
                  parent = None
-            nullParents = getCategory.filter(parent__unique_name=parent)
-            single = getCategory.filter(unique_name=parent)
-            serialized_data=MyCategorySerializer2(nullParents, many=True).data
-            return Response({"categories":serialized_data,"category":single.values().first()})
+                 nullParents = getCategory.filter(parent=parent)
+                 serialized_data=MyCategorySerializer2(nullParents, many=True).data
+                 return Response({"categories":serialized_data,"category":[]})
+            else:
+                nullParents = getCategory.filter(parent__unique_name=parent)
+                single = getCategory.filter(unique_name=parent)
+                serialized_data=MyCategorySerializer2(nullParents, many=True).data
+                return Response({"categories":serialized_data,"category":single.values().first()})
         if(category is None):
             nullParents = getCategory.filter(parent=None)
             serialized_data=MyCategorySerializer2(nullParents, many=True).data

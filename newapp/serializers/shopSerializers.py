@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from newapp.models import MainCategory, CategoryImage, CustomUser, Location
+from newapp.serializers.maincategorySerializer import MainCategorySerializer2
+from newapp.serializers.locationSerializer import LocationSerializer2
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -89,9 +91,11 @@ class ShopCreateSerializer(serializers.ModelSerializer):
 
 class ShopViewSerializer(serializers.ModelSerializer):
     # id = serializers.IntegerField(required=False)
-    company_logo = serializers.SerializerMethodField(
-        "get_company_logo_image_field_url", required=False, read_only=True
+    shop_logo = serializers.SerializerMethodField(
+        "get_shop_logo_image_field_url", required=False, read_only=True
     )
+    main_category_details = MainCategorySerializer2(many=True, read_only=True, source='main_category')
+    location_details = LocationSerializer2( read_only=True, source='location')
     background_image = serializers.SerializerMethodField(
         "get_image_field_url", required=False, read_only=True
     )
@@ -100,10 +104,10 @@ class ShopViewSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = "__all__"
 
-    def get_company_logo_image_field_url(self, obj):
-        if obj.company_logo:
+    def get_shop_logo_image_field_url(self, obj):
+        if obj.shop_logo:
             base_url = "http://127.0.0.1:8000/"  # Replace with your base URL
-            return base_url + obj.company_logo.url
+            return base_url + obj.shop_logo.url
         return None
 
     def get_image_field_url(self, obj):
@@ -115,7 +119,11 @@ class ShopViewSerializer(serializers.ModelSerializer):
 
 class ShopUpdateSerializer(serializers.ModelSerializer):
     # id = serializers.IntegerField(required=False)
-    # company_logo = serializers.ImageField(required=False)
+    # shop_logo = serializers.ImageField(required=False)
+    main_category_details = MainCategorySerializer2(many=True, read_only=True, source='main_category')
+    location = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all())
+    main_category = serializers.PrimaryKeyRelatedField(queryset=MainCategory.objects.all(),many=True)
     class Meta:
         model = CustomUser
         fields = "__all__"
+        depth=10

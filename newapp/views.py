@@ -3,6 +3,7 @@ from django.shortcuts import render
 # from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
+from newapp.permissions import IsShop
 from rest_framework.views import APIView
 from .models import MainCategory, CategoryImage, CustomUser, Location
 from newapp.model_s.productModels import Products
@@ -92,10 +93,41 @@ def custom_login(request):
 
 
 # Create your views here.
+    
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework import status
+from rest_framework.response import Response
+from django.contrib.auth import authenticate
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        # Custom authentication logic
+        user = authenticate(email=email, password=password)
+        if user is None:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generate tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user':{
+                'id':user.id,
+                'email':user.email,
+                'username':user.username,
+                'is_staff':user.is_staff,
+            }
+        })
+
 class MainCategoryView(viewsets.ModelViewSet):
     queryset = MainCategory.objects.all().prefetch_related("category_images")
     serializer_class = MainCategorySerializer2
-    # permission_classes = [permissions.IsAdminUser]
+    # permission_classes = [IsShop]
 
     def list(self, request):
         root_categories = MainCategory.objects.filter(parent=None)
@@ -169,6 +201,7 @@ class ShopRegisterView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = RegisterSerializer
     lookup_field = "unique_shopName"
+    # permission_classes = [permissions.IsAdminUser]
     # def list(self, request):
     #     # get_shops= User.objects.all()
     #     # serializers = RegisterSerializer(get_shops,many=True)

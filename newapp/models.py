@@ -29,7 +29,12 @@ class MainCategory(models.Model):
     )
     name = models.CharField(unique=True, null=False, max_length=50, blank=False)
     unique_name = models.CharField(unique=True, null=False, max_length=50, blank=False)
-
+    image = models.ImageField(
+        unique=False, max_length=200, blank=True, null=True, upload_to="MainCategoryImg"
+    )
+    index=models.IntegerField(null=True,
+        unique=False,
+        blank=True,)
     class Meta:
         managed = True
         db_table = "maincategory"
@@ -150,17 +155,23 @@ class CustomUser(AbstractUser):
     # first_name = None
     # last_name = None
     # is_staff = None
-    username = models.CharField(null=True, max_length=50, blank=True)
-    email = models.EmailField(_("email address"), unique=True)
+    username = models.CharField(null=True, max_length=50, blank=True,)
+    email = models.EmailField(_("email address"), unique=True, error_messages={
+        'unique': _("This email address is already in use."),
+    })
+    # Other
     is_shop = models.BooleanField(default=False)
-    is_customer = models.BooleanField(default=False)
+    is_customer = models.BooleanField(default=True)
     shopName = models.CharField(
-        unique=True, null=True, max_length=50, blank=False, default=""
+        unique=False, null=True, max_length=50, blank=True,
+        error_messages ={
+                    "unique":"unique."
+                    }
     )
     unique_shopName = models.CharField(
-        null=True, max_length=50, blank=True, unique=True
+        null=True, max_length=50, blank=True, unique=False,
     )
-    company_logo = models.ImageField(blank=True, null=True, upload_to=get_upload_path)
+    shop_logo = models.ImageField(blank=True, null=True, upload_to=get_upload_path)
     background_image = models.ImageField(
         unique=False, blank=True, null=True, upload_to=banner_upload_path
     )
@@ -182,7 +193,13 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
-
+    class Meta:
+            unique_together = [['email']]
+            # error_messages = {
+            #     'email': {
+            #         'unique': _("This email address is already in use."),
+            #     }
+            # }
     def __str__(self):
         return str(self.id)
 
@@ -190,9 +207,11 @@ class CustomUser(AbstractUser):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
         print(self, "DATA")
-        self.unique_shopName = (
-            str(self.shopName).replace(" ", "").replace("/", "-").lower()
-        )
+        if(self.shopName):
+            self.unique_shopName = (
+                str(self.shopName).replace(" ", "").replace("/", "-").lower()+"_"+str(self.id)
+            )
+        
         # self.pop("password2")
         # call the parent's save() method
         # if self.company_logo is not None:

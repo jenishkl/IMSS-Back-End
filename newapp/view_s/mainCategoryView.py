@@ -13,9 +13,10 @@ def getCategory(request):
     try:
         parent = request.GET.get("parent")
         data = MainCategory.objects.filter(parent__unique_name=parent)
+        parent = MainCategory.objects.filter(unique_name=parent)
         # print(data)
-        serialized_data = MainCategoryGetSerializer(data, many=True)
-        return Response(serialized_data.data)
+        serialized_data = MainCategorySerializer2(data, many=True)
+        return Response({'sub_categories':serialized_data.data,'parent':parent.values().first()})
     except Exception as e:
         return Response({"message": "Got some data!", "data": str(e)}, status=400)
 
@@ -52,9 +53,15 @@ def filterMainCategory(request, pk):
                     if (dict(serialized_dat[0])["parent"]) is not None:
                         interate([item["parent"]])
 
-            interate(serialized_data)
-            print(locations.reverse(), "LOCATIONS")
+        interate(serialized_data)
+        print(locations.reverse(), "LOCATIONS")
         return Response(locations)
+        # root_categories = MainCategory.objects.filter(id=pk)
+        # serialized_data = MainCategorySerializer(root_categories, many=True).data
+        # # queryset = MainCategory.objects.all().prefetch_related("category_images")
+        # # serializer = MainCategorySerializer(queryset, many=True)
+        # return Response({"data": serialized_data})
+
     # root_categories = MainCategory.objects.filter(id=pk)
     # serialized_data = MainCategorySerializer(root_categories, many=True).data
     # # queryset = MainCategory.objects.all().prefetch_related("category_images")

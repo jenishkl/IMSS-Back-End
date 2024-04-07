@@ -30,6 +30,7 @@ class Products(models.Model):
     original_price = models.FloatField()
     selling_price = models.FloatField()
     stock = models.FloatField()
+    aspectRatio=models.FloatField(default=1)
     is_have_size = models.BooleanField(default=False)
     is_deliverable = models.BooleanField(default=False)
     deliverable_range = models.FloatField(null=True,blank=True)
@@ -55,7 +56,6 @@ class Products(models.Model):
         # on_delete=models.SET_NULL,
         # related_name="my_category",
     )
-
     class Meta:
         managed = True
         db_table = "products"
@@ -64,7 +64,7 @@ class Products(models.Model):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
         print(self, "DATA")
-        self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()
+        self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
         # call the parent's save() method
         super(Products, self).save(*args, **kwargs)
 
@@ -105,7 +105,7 @@ class ProductImages(models.Model):
     )
       aspect_ratio=models.FloatField(unique=False,null=True,blank=True)
       primary=models.BooleanField()
-
+      index=models.IntegerField(null=True ,blank=True)
 
       def __str__(self):
             return str(self.product.shop_name.id)
