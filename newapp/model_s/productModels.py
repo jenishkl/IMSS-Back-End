@@ -67,7 +67,8 @@ class Products(models.Model):
         self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
         # call the parent's save() method
         super(Products, self).save(*args, **kwargs)
-
+        # self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
+        # super(Products, self).save(*args, **kwargs)
     # class ProductSerializer(serializers.ModelSerializer):
     # images = ImageSerializer(many=True, read_only=True)
 

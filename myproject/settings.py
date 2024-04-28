@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import redis
+from datetime import timedelta
 from pathlib import Path
 
 # from newapp.serializers.
@@ -26,14 +28,15 @@ SECRET_KEY = "django-insecure-%44gn=d!wmj0o776@6j3+lh-5h3%7-+m6tigc&en7mn*ne7c81
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    # "daphne",
-                    "django_browser_reload",
+
+    "daphne", "channels",
+    "django_browser_reload",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,32 +46,60 @@ INSTALLED_APPS = [
     "newapp",
     "rest_framework",
     "corsheaders",
-    # "channels",
     "rest_framework_simplejwt",
-    
     "django.contrib.sites",
 ]
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels.layers.InMemoryChannelLayer",
-#     },
-# }
+
+ASGI_APPLICATION = "myproject.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 # CHANNEL_LAYERS = {
 #     "default": {
 #         "BACKEND": "channels_redis.core.RedisChannelLayer",
 #         "CONFIG": {
-#             "hosts": [("localhost", 6379)],
+#            "hosts": [("127.0.0.1", 6379)],
 #         },
 #     },
 # }
 
+# Connect to Redis
+# r = redis.Redis(host="127.0.0.1", port=6379)
+
+# # Test Redis connection
+# try:
+#     response = r.ping()
+#     print(f"Redis Ping Response: {response}")
+# except redis.ConnectionError as e:
+#     print(f"Failed to connect to Redis: {e}")
+
+
+class CustomMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    async def __call__(self, request):
+        # Code executed before the view is called
+        response = await self.get_response(request)
+        # Code executed after the view is called
+        return response
+
+    async def process_response(self, request, response):
+        # Modify the response or perform additional actions
+        return response
+
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+
+    # 'asgi_cors.middleware.CorsMiddleware',
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -89,11 +120,10 @@ REST_FRAMEWORK = {
 #         'rest_framework.authentication.SessionAuthentication',
 #     )
 # }
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=11),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": True,
@@ -141,9 +171,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "myproject.wsgi.application"
-ASGI_APPLICATION = "myproject.asgi.application"
 
 
 # Database

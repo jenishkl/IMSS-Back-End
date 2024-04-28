@@ -1,5 +1,8 @@
+from newapp.consumer import ChatConsumer
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, viewsets
 from newapp.model_s.productModels import Products, ProductImages
 from django.contrib.auth import get_user_model
@@ -10,7 +13,11 @@ from newapp.serializers.productSerializer import ProductsSerializer
 from newapp.serializers.productSerializer import ProductsViewSerializer
 from newapp.serializers.shopSerializers import ShopViewSerializer
 from newapp.model_s.checkoutModel import Kart, Order
-from newapp.serializers.checkoutSerializer import KartSerializer, OrderSerializer
+from newapp.serializers.checkoutSerializer import KartSerializer, OrderSerializer, DeliveryAddressSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from django.db.models import Q, F, ExpressionWrapper, FloatField, Value, CharField, AutoField, JSONField, Sum
+from django.db import models
+from django.db.models import OuterRef, Subquery, OuterRef
 import math
 
 User = get_user_model()
@@ -31,8 +38,145 @@ class OrderView(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getKart(request):
+    user_id = request.user.id
+    query = (Kart.objects.filter(Q(user=user_id)&Q(status=1)).distinct().values('shop')
+             # .annotate(shopd=Subquery(User.objects.filter(id=OuterRef('shop_id')).values_list('shopName'),output_field=AutoField()))
+             # .annotate(products=Subquery(Kart.objects.filter(Q(shop_id=Value('shop_id'))&Q(user_id=46)).values_list('id',flat=True).distinct()[0],output_field=JSONField()))
+             )  # serializer=KartSerializer(query,many=True)
+    shop_data = []
+    for shop in query:
+        print(shop, "HHHH")
+        query = (Kart.objects.filter(shop=shop['shop'])
+                 #   .annotate(pp=Subquery(Products.objects.filter(id=OuterRef('product_id')).values_list('id'),output_field=AutoField()))
+                 )
+        total_amount = Kart.objects.filter(shop=shop['shop']).aggregate(
+            total_amount=Sum('product__selling_price'))['total_amount'] or 0
+        print(str(total_amount))
+        ss = KartSerializer(query, many=True).data
+        shop_info = {
+            'shop': User.objects.filter(id=shop['shop']).values()[0],
+            'products': ss,
+            'total_amount':total_amount
+        }
+        shop_data.append(shop_info)
+    print(str(query))
+    return Response(shop_data)
+
+    # query=Kart.objects.create()
+
+
 @api_view(["POST"])
-def getCheckOut(request):
+@permission_classes([IsAuthenticated])
+def addKart(request):
+    user_id = request.user.id
+    print(request.user.id)
+    request.data['user'] = user_id
+    getKart = Kart.objects.filter(
+        Q(product=request.data['product']) & Q(user=user_id)).values()
+    print(getKart)
+    if (len(getKart) != 0):
+        return Response("Product already added to the cart", status=400)
+    serializer = KartSerializer(data=request.data)
+    if (serializer.is_valid()):
+        serializer.save()
+        return Response(serializer.data)
+    else:
+        return Response(serializer.errors, status=400)
+    # query=Kart.objects.create()
+
+
+@api_view(["POST"])
+def createOrder(request):
+    try:
+        phone_number = request.data['phone_number']
+        alt_phone_number = request.data['alt_phone_number']
+        customer_name = request.data['customer_name']
+        email = request.data['email']
+        delivery_address_serializer = DeliveryAddressSerializer(
+            data=request.data['delivery_address'])
+        if (delivery_address_serializer.is_valid()):
+            delivery_address_serializer.save()
+        else:
+            return Response("Delivery address failed", status=400)
+        for s in request.data['order']:
+            shop = s['shop']['id']
+            print(shop)
+            kart = []
+            total_product_cost = 0
+            total_discount = 0
+            grand_total = 0
+            delivery_cost = 60
+            originl_total_product_cost = 0
+            for p in s['products']:
+                kart.append(p["id"])
+                cart = Kart.objects.get(pk=p["id"])
+                cart.status = '2'
+                cart.save()
+                total_product_cost = total_product_cost + \
+                    p['product_details']['selling_price']
+                originl_total_product_cost = originl_total_product_cost + \
+                    p['product_details']['original_price']
+            total_discount = abs(total_product_cost-originl_total_product_cost)
+            grand_total = total_product_cost+delivery_cost
+            serializer = OrderSerializer(data={"email": email, "customer_name": customer_name, 'delivery_address': delivery_address_serializer.data['id'], "alt_phone_number": alt_phone_number, "phone_number": phone_number,
+                                               "total_product_cost": total_product_cost, "kart": kart, "shop": shop, "total_discount": total_discount,
+                                               "grand_total": grand_total, "delivery_cost": delivery_cost, "originl_total_product_cost": originl_total_product_cost, "customer": request.user.id
+                                               })
+            if (serializer.is_valid()):
+                serializer.save()
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    # Group name which WebSocket consumers will join
+                    f'shop_{shop}',
+                    {
+                        'type': 'user_message',
+                        'data': serializer.data
+                    }
+                )
+            else:
+                return Response({'message': "your Order failed "}, status=400)
+        return Response({'message': "your Order has been placed "})
+    except Exception as e:
+        print(str(e))
+        return Response(str(e), 400)
+
+
+@api_view(["GET"])
+def getOrders(request):
+    channel_layer = get_channel_layer()
+
+    # Send message to WebSocket group
+    # async_to_sync(channel_layer.group_send)(
+    #     'chat',  # Group name
+    #     {
+    #         'type': 'send_message',
+    #         'message': "message",
+    #     }
+    # )
+    query = Order.objects.filter(shop=request.user.id)
+    serializer = OrderSerializer(query, many=True).data
+    return Response(serializer)
+
+
+@api_view(["POST"])
+def changeOrderStatus(request):
+    channel_layer = get_channel_layer()
+    # async_to_sync(channel_layer.group_send)(
+    #     'user_1',  # Group name which WebSocket consumers will join
+    #     {
+    #         'type': 'user_message',
+    #         'message': "ASDFD"
+    #     }
+    # )
+
+    return Response("")
+
+
+@api_view(["POST"])
+async def getCheckOut(request):
     try:
         data = request.data
         lat = 8.288515
@@ -51,7 +195,8 @@ def getCheckOut(request):
                 .annotate(
                     a=(
                         Power(Sin(F("dLat") / 2), 2)
-                        + Power(Sin(F("dLon") / 2), 2) * Cos(F("lat1") * Cos(F("lat2")))
+                        + Power(Sin(F("dLon") / 2), 2) *
+                        Cos(F("lat1") * Cos(F("lat2")))
                     )
                 )
                 .annotate(c=2 * ASin(Sqrt(F("a"))))
@@ -67,12 +212,14 @@ def getCheckOut(request):
                 p1 = Products.objects.filter(id=p).annotate(
                     dc=query[0].Km * F("delivery_charge_per_km")
                 )
-                serialize_product = ProductsViewSerializer(p1[0], many=False).data
+                serialize_product = ProductsViewSerializer(
+                    p1[0], many=False).data
                 total_dicount_shop = (
                     total_dicount_shop + serialize_product["original_price"]
                 )
                 total_product_cost_shop = (
-                    total_product_cost_shop + serialize_product["selling_price"]
+                    total_product_cost_shop +
+                    serialize_product["selling_price"]
                 )
                 pp.append(serialize_product)
             serilize_shop = ShopViewSerializer(query, many=True)

@@ -31,7 +31,7 @@ from newapp.view_s.productView import (
 )
 from newapp.view_s.mainCategoryView import getCategory, filterMainCategory
 from newapp.view_s.shopViews import edit_shop, get_shops,create_shop,ShopUpdateView,getShop
-from newapp.view_s.checkoutViews import getCheckOut
+from newapp.view_s.checkoutViews import getCheckOut,addKart,getKart,createOrder,getOrders,changeOrderStatus
 from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework import routers
@@ -98,7 +98,14 @@ urlpatterns = [
     path("product/", createProducts),
     path("get_products/", getProducts),
     path("add_product_image/", addProductImage),
+
+
     path("check_out/", getCheckOut),
+    path("createOrder/", createOrder),
+    path("getOrders/", getOrders),
+    path("addKart/", addKart),
+    path("getKart/", getKart),
+    path("changeOrderStatus/", changeOrderStatus),
     # path('api-auth/', include('rest_framework.urls'))
     # path('product/',views.ProductView.as_view() )
 ]
