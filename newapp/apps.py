@@ -10,4 +10,5 @@ class NewappConfig(AppConfig):
         import newapp.model_s.shopCategoryModel
         import newapp.model_s.productModels
         import newapp.model_s.checkoutModel
+        import newapp.model_s.CommonModels
         # import newapp.models.folder2.mymodel2

@@ -11,7 +11,6 @@ from rest_framework.response import Response
 from django.http import JsonResponse
 from newapp.serializers.productSerializer import ProductsSerializer
 from newapp.serializers.productSerializer import ProductsViewSerializer
-from newapp.serializers.commonSerializer import NotificationSerializer
 from newapp.serializers.shopSerializers import ShopViewSerializer
 from newapp.model_s.checkoutModel import Kart, Order
 from newapp.serializers.checkoutSerializer import KartSerializer, OrderSerializer, DeliveryAddressSerializer
@@ -43,7 +42,7 @@ class OrderView(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def getKart(request):
     user_id = request.user.id
-    query = (Kart.objects.filter(Q(user=user_id) & Q(status=1)).distinct().values('shop')
+    query = (Kart.objects.filter(Q(user=user_id)&Q(status=1)).distinct().values('shop')
              # .annotate(shopd=Subquery(User.objects.filter(id=OuterRef('shop_id')).values_list('shopName'),output_field=AutoField()))
              # .annotate(products=Subquery(Kart.objects.filter(Q(shop_id=Value('shop_id'))&Q(user_id=46)).values_list('id',flat=True).distinct()[0],output_field=JSONField()))
              )  # serializer=KartSerializer(query,many=True)
@@ -60,7 +59,7 @@ def getKart(request):
         shop_info = {
             'shop': User.objects.filter(id=shop['shop']).values()[0],
             'products': ss,
-            'total_amount': total_amount
+            'total_amount':total_amount
         }
         shop_data.append(shop_info)
     print(str(query))
@@ -126,20 +125,6 @@ def createOrder(request):
                                                "total_product_cost": total_product_cost, "kart": kart, "shop": shop, "total_discount": total_discount,
                                                "grand_total": grand_total, "delivery_cost": delivery_cost, "originl_total_product_cost": originl_total_product_cost, "customer": request.user.id
                                                })
-
-            notificationserializer = NotificationSerializer(
-                data={"source": "Order", "user": shop, "description": "You Have order from jenish", "title": "Order", })
-            if (notificationserializer.is_valid()):
-                notificationserializer.save()
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    # Group name which WebSocket consumers will join
-                    f'{shop}',
-                    {
-                        'type': 'user_message',
-                        'data': serializer.data
-                    }
-                )
             if (serializer.is_valid()):
                 serializer.save()
                 channel_layer = get_channel_layer()

@@ -3,11 +3,11 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         # Assuming the user ID is passed via URL
         self.user_id = self.scope['url_route']['kwargs']['user_id']
-        self.group_name = self.user_id
+        self.group_name =  self.user_id
 
         # Join room group
         await self.channel_layer.group_add(
