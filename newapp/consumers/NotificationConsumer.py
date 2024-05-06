@@ -7,7 +7,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         # Assuming the user ID is passed via URL
         self.user_id = self.scope['url_route']['kwargs']['user_id']
-        self.group_name =  self.user_id
+        self.group_name = self.user_id
 
         # Join room group
         await self.channel_layer.group_add(
@@ -34,7 +34,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.group_name,
             {
-                'type': 'user_message',
+                'type': 'user_notification',
                 'message': "message"
             }
         )
@@ -44,8 +44,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         # }))
     # Receive message from room group
 
-    async def user_message(self, event):
-        data = event['data']
+    async def user_notification(self, event):
+        data = event
 
         # Send message to WebSocket
         await self.send(

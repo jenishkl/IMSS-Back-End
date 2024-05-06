@@ -15,6 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from rest_framework import authentication, permissions
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
@@ -30,8 +35,9 @@ from newapp.view_s.productView import (
     addProductImage,
 )
 from newapp.view_s.mainCategoryView import getCategory, filterMainCategory
-from newapp.view_s.shopViews import edit_shop, get_shops,create_shop,ShopUpdateView,getShop
-from newapp.view_s.checkoutViews import getCheckOut,addKart,getKart,createOrder,getOrders,changeOrderStatus
+from newapp.view_s.shopViews import edit_shop, get_shops, create_shop, ShopUpdateView, getShop
+from newapp.view_s.commonViews import notifications
+from newapp.view_s.checkoutViews import getCheckOut, addKart, getKart, createOrder, getOrders, changeOrderStatus, viewOrder
 from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework import routers
@@ -56,11 +62,6 @@ categoryList = views.MainCategoryView.as_view({"get": "list"})
 # user_list = views.ProductView.as_view({'get': 'list'})
 # user_detail = views.ProductView.as_view({'get': 'retrieve'})
 # post_detail = views.ProductView.as_view({'post': 'create'})
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from rest_framework import authentication, permissions
 
 # class CustomTokenObtainPairView(TokenObtainPairView):
 #     # Replace the serializer with your custom
@@ -68,7 +69,8 @@ from rest_framework import authentication, permissions
 urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     # path("", include("newapp.routing.urls")),
-    path("api/token/", views.CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/", views.CustomTokenObtainPairView.as_view(),
+         name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # MY CATEGORY
     path("get_main_category/", getCategory),
@@ -106,6 +108,10 @@ urlpatterns = [
     path("addKart/", addKart),
     path("getKart/", getKart),
     path("changeOrderStatus/", changeOrderStatus),
+    path("viewOrder/", viewOrder),
+
+
+    path("notifications/", notifications),
     # path('api-auth/', include('rest_framework.urls'))
     # path('product/',views.ProductView.as_view() )
 ]

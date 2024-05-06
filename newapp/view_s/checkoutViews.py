@@ -19,6 +19,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value, CharField, AutoField, JSONField, Sum
 from django.db import models
 from django.db.models import OuterRef, Subquery, OuterRef
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 import math
 
 User = get_user_model()
@@ -136,8 +138,8 @@ def createOrder(request):
                     # Group name which WebSocket consumers will join
                     f'{shop}',
                     {
-                        'type': 'user_message',
-                        'data': serializer.data
+                        'type': 'user_notification',
+                        'data': notificationserializer.data
                     }
                 )
             if (serializer.is_valid()):
@@ -160,20 +162,34 @@ def createOrder(request):
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def getOrders(request):
-    channel_layer = get_channel_layer()
+    print(request.user.id)
+    if (request.user.is_staff == 1):
 
-    # Send message to WebSocket group
-    # async_to_sync(channel_layer.group_send)(
-    #     'chat',  # Group name
-    #     {
-    #         'type': 'send_message',
-    #         'message': "message",
-    #     }
-    # )
-    query = Order.objects.filter(shop=request.user.id)
-    serializer = OrderSerializer(query, many=True).data
-    return Response(serializer)
+        query = Order.objects.filter(shop=request.GET.get('shop'))
+        serializer = OrderSerializer(query, many=True).data
+        return Response(serializer)
+    else:
+        query = Order.objects.filter(shop=request.user.id)
+        serializer = OrderSerializer(query, many=True).data
+        return Response(serializer)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def viewOrder(request):
+    if (request.user.is_staff == 1):
+        query = Order.objects.filter(
+            Q(shop=request.GET.get("shop")) | Q(order_id=request.GET.get("order_id"))).first()
+        
+        serializer = OrderSerializer(query, many=False).data
+        return Response(serializer)
+    else:
+        query = Order.objects.filter(
+            Q(shop=request.user.id) & Q(order_id=request.GET.get("id"))).first()
+        serializer = OrderSerializer(query, many=False).data
+        return Response(serializer)
 
 
 @api_view(["POST"])

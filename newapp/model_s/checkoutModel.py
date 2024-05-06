@@ -2,6 +2,8 @@ from django.db import models
 from newapp.models import Location
 from newapp.models import CustomUser
 from newapp.model_s.productModels import Products
+from django.db.models import IntegerField, Value
+from django.db.models.functions import Cast
 
 
 class Kart(models.Model):
@@ -59,8 +61,9 @@ class Order(models.Model):
         null=False, blank=True, max_length=15, default=0)
     phone_number = models.CharField(
         null=False, blank=True, max_length=15, default=0)
+    order_id = models.TextField(null=True, blank=True)
     alt_phone_number = models.CharField(
-        null=False, blank=True, max_length=15, default=0)
+        null=True, blank=True, max_length=15, default=0)
     # order_location = models.ForeignKey(
     #     Location,
     #     unique=False,
@@ -86,3 +89,21 @@ class Order(models.Model):
     class Meta:
         managed = True
         db_table = "orders"
+
+    def save(self, *args, **kwargs):
+        # Generate the ID if it's a new object
+        shopp = CustomUser.objects.get(pk=self.shop.id)
+        if not self.pk:
+            last_order = Order.objects.filter(
+                shop=self.shop).order_by('order_id').last()
+            if last_order:
+                last_id = int(last_order.order_id.split('-')[2])
+                new_id = last_id + 1
+            else:
+                last_id = 0
+                new_id = 1
+            self.order_id = f'{self.shop}-{shopp.shopName[0:2]}-{new_id}'
+
+            # self.order_id = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
+            # call the parent's save() method
+            super(Order, self).save(*args, **kwargs)
