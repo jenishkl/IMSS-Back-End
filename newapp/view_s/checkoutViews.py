@@ -45,10 +45,15 @@ class OrderView(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def getKart(request):
     user_id = request.user.id
-    query = (Kart.objects.filter(Q(user=user_id) & Q(status=1)).distinct().values('shop')
+    status=request.GET.get('status')
+    if(status=='order'):
+      query = (Kart.objects.filter(Q(user=user_id) & ~Q(status=1)).distinct().values('shop')
              # .annotate(shopd=Subquery(User.objects.filter(id=OuterRef('shop_id')).values_list('shopName'),output_field=AutoField()))
              # .annotate(products=Subquery(Kart.objects.filter(Q(shop_id=Value('shop_id'))&Q(user_id=46)).values_list('id',flat=True).distinct()[0],output_field=JSONField()))
              )  # serializer=KartSerializer(query,many=True)
+    else:
+      query = (Kart.objects.filter(Q(user=user_id) & Q(status=1)).distinct().values('shop'))
+
     shop_data = []
     for shop in query:
         print(shop, "HHHH")
@@ -182,8 +187,32 @@ def viewOrder(request):
     if (request.user.is_staff == 1):
         query = Order.objects.filter(
             Q(shop=request.GET.get("shop")) | Q(order_id=request.GET.get("order_id"))).first()
-        
+        R = 6371.0
+
         serializer = OrderSerializer(query, many=False).data
+        shopd = User.objects.filter(id=request.GET.get("shop")).values()[0]
+        lat1 = shopd['lat']
+        lon1 = shopd['long']
+        lat2 = serializer['delivery_address_details']['lat']
+        lon2 = serializer['delivery_address_details']['lon']
+        # Convert latitude and longitude from degrees to radians
+        lat1_rad = math.radians(lat1)
+        lon1_rad = math.radians(lon1)
+        lat2_rad = math.radians(lat2)
+        lon2_rad = math.radians(lon2)
+
+        # Calculate the change in coordinates
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+
+        # Haversine formula
+        a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * \
+            math.cos(lat2_rad) * math.sin(dlon / 2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        distance = R * c
+        print(distance)
+        serializer = OrderSerializer(query, many=False).data
+        serializer['distance'] = distance
         return Response(serializer)
     else:
         query = Order.objects.filter(
@@ -194,7 +223,11 @@ def viewOrder(request):
 
 @api_view(["POST"])
 def changeOrderStatus(request):
-    channel_layer = get_channel_layer()
+    query = Kart.objects.get(request.data['id'])
+    
+    serializer=KartSerializer(query,data=request.data,partial=True)
+    
+    # channel_layer = get_channel_layer()
     # async_to_sync(channel_layer.group_send)(
     #     'user_1',  # Group name which WebSocket consumers will join
     #     {
@@ -207,6 +240,26 @@ def changeOrderStatus(request):
 
 
 @api_view(["POST"])
+def kartStatusChange(request):
+    query = Kart.objects.get(pk=request.data['id'])
+    print(query)
+    serializer=KartSerializer(query,data=request.data,partial=True)
+    if(serializer.is_valid()):
+        serializer.save()
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+                    # Group name which WebSocket consumers will join
+                    f'{request.data['id']}',
+                    {
+                        'type': 'status_change',
+                        'data': serializer.data
+                    }
+                )
+
+    return Response("")
+
+
+# @api_view(["POST"])
 async def getCheckOut(request):
     try:
         data = request.data
