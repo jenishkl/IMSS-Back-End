@@ -54,16 +54,19 @@ def create_shop(request):
         if(password!=password2):
             raise Exception('Password did not match')
         
-        
-        user =User.objects.create(
-            username=username,
-            email=email,
+        location_instance = Location.objects.get(pk=request.data['shop']['location'])
+
+# Create the User instance with the location_instance
+        del request.data['shop']['location']
+        user =User.objects.create(location=location_instance,**request.data['shop']
+            # username=username,
+            # email=email,
             )
-        print(password)
-        user.set_password(password)
+        # print(password)
+        # user.set_password(password)
         user.save()
         # serialized_data = ShopCreateSerializer()
-        return Response({"message": "Hello, world!"})
+        return Response("user")
     except Exception as e:
         return Response({"message": str(e) }, status=400)
 

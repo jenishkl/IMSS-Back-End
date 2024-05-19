@@ -181,6 +181,7 @@ class CustomUser(AbstractUser):
     address = models.CharField(unique=False, null=True, max_length=50, blank=True)
     lat = models.FloatField(unique=False, null=True, blank=True)
     long = models.FloatField(unique=False, null=True, blank=True)
+    delivery_charge = models.FloatField(unique=False, null=True, blank=True)
     about = models.CharField(unique=False, null=True, max_length=100, blank=True)
     main_category = models.ManyToManyField(MainCategory)
     contact_number = models.IntegerField(

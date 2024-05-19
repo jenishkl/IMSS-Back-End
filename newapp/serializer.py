@@ -90,8 +90,8 @@ class NestedCategorySerializer(serializers.Serializer):
     parent = serializers.PrimaryKeyRelatedField(
         queryset=MainCategory.objects.all(), required=False
     )
-    name = serializers.CharField()
-    unique_name = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True,source='name')
+    value = serializers.CharField(read_only=True,source='unique_name')
     category_images = MainCategoryImageSerializer(read_only=True, many=True)
     children = serializers.SerializerMethodField("get_children")
 

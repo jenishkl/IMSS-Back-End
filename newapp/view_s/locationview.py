@@ -38,7 +38,7 @@ class LocationView(viewsets.ModelViewSet):
         ).data
         # queryset = Location.objects.all().prefetch_related("category_images")
         # serializer = LocationSerializer(queryset, many=True)
-        return Response({"data": serialized_data}, status=200)
+        return Response(serialized_data, status=200)
 
     def retrieve(self, request, pk):
         locations = []

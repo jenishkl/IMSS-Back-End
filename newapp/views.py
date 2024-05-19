@@ -1,3 +1,12 @@
+import math
+from rest_framework import status
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.contrib.auth import authenticate
+import datetime
+import jwt
 from django.shortcuts import render
 
 # from django.shortcuts import render
@@ -43,14 +52,6 @@ User = get_user_model()
 
 # Custom login view
 
-import jwt
-import datetime
-from django.contrib.auth import authenticate
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
-import json
-
 
 @csrf_exempt
 @api_view(["POST"])
@@ -83,7 +84,8 @@ def custom_login(request):
                 "exp": datetime.datetime.utcnow()
                 + datetime.timedelta(minutes=30),  # Token expiration time
             }
-            token = jwt.encode(payload, "settings.SECRET_KEY", algorithm="HS256")
+            token = jwt.encode(
+                payload, "settings.SECRET_KEY", algorithm="HS256")
 
             return JsonResponse({"token": token, "userDetails": (list(userData)[0])})
         else:
@@ -93,12 +95,7 @@ def custom_login(request):
 
 
 # Create your views here.
-    
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework import status
-from rest_framework.response import Response
-from django.contrib.auth import authenticate
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -116,13 +113,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-            'user':{
-                'id':user.id,
-                'email':user.email,
-                'username':user.username,
-                'is_staff':user.is_staff,
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'is_staff': user.is_staff,
             }
         })
+
 
 class MainCategoryView(viewsets.ModelViewSet):
     queryset = MainCategory.objects.all().prefetch_related("category_images")
@@ -131,15 +129,17 @@ class MainCategoryView(viewsets.ModelViewSet):
 
     def list(self, request):
         root_categories = MainCategory.objects.filter(parent=None)
-        serialized_data = NestedCategorySerializer(root_categories, many=True).data
+        serialized_data = NestedCategorySerializer(
+            root_categories, many=True).data
         # queryset = MainCategory.objects.all().prefetch_related("category_images")
         # serializer = MainCategorySerializer(queryset, many=True)
-        return Response({"data": serialized_data})
+        return Response(serialized_data)
 
     def retrieve(self, request, pk):
         root_categories = MainCategory.objects.filter(unique_name=pk)
         root_categories2 = MainCategory.objects.filter(parent__unique_name=pk)
-        serialized_data = MainCategorySerializer(root_categories, many=True).data
+        serialized_data = MainCategorySerializer(
+            root_categories, many=True).data
         childrens = MainCategorySerializer2(root_categories2, many=True).data
         # queryset = Location.objects.all().prefetch_related("category_images")
         # serializer = LocationSerializer(queryset, many=True)
@@ -364,8 +364,6 @@ class ProductsView(viewsets.ModelViewSet):
 #         ancestor_categories = list(ancestors)
 #         return Response("Sss")
 #         # ancestor_names = [category.name for category in ancestors]
-
-import math
 
 
 # @api_view(["GET"])
