@@ -58,12 +58,15 @@ def create_shop(request):
 
 # Create the User instance with the location_instance
         del request.data['shop']['location']
-        user =User.objects.create(location=location_instance,**request.data['shop']
+        
+        user =User.objects.create(location=location_instance,is_shop=True,**request.data['shop']
+                                  
             # username=username,
             # email=email,
             )
         # print(password)
         # user.set_password(password)
+        user.main_category.set(request.data["main_category"])
         user.save()
         # serialized_data = ShopCreateSerializer()
         return Response("user")

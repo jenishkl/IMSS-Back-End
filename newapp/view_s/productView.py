@@ -101,18 +101,18 @@ def getProducts(request):
         "images", queryset=ProductImages.objects.order_by("-primary")))
         query = query.filter(shop_name=shop)
         sdata = ProductsViewSerializer(query, many=True)
-
+        mycategory= MyCategory.objects.filter(shop=shop)
         # return Response(sdata.data)
         if product is not None:
             query=query.filter(id=product)
         if category:
-                target_categories = MyCategory.objects.get(unique_name=category)
+                target_categories = mycategory.get(unique_name=category)
                 category_query = Q(my_category=target_categories)
-                target_categories = MyCategory.objects.filter(unique_name=category)
+                target_categories = mycategory.filter(unique_name=category)
                 for obj in target_categories:
                     category_query |= Q(my_category=obj)
                 while target_categories.exists():
-                    target_categories = MyCategory.objects.filter(
+                    target_categories = mycategory.filter(
                         parent__in=target_categories
                     )
                     for obj in target_categories:

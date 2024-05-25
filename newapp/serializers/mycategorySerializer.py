@@ -123,3 +123,15 @@ class MyCategorySerializer(serializers.ModelSerializer):
 
             return MyCategorySerializer(parent, many=False).data
 
+class NestedMyCategorySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=MyCategory.objects.all(), required=False
+    )
+    name = serializers.CharField(source="name")
+    unique_name = serializers.CharField(read_only=True, source="unique_name")
+    children = serializers.SerializerMethodField("get_children")
+
+    def get_children(self, obj):
+        children = MyCategory.objects.filter(parent=obj)
+        return NestedMyCategorySerializer(children, many=True).data

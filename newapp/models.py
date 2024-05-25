@@ -184,7 +184,8 @@ class CustomUser(AbstractUser):
     delivery_charge = models.FloatField(unique=False, null=True, blank=True)
     about = models.CharField(unique=False, null=True, max_length=100, blank=True)
     main_category = models.ManyToManyField(MainCategory)
-    contact_number = models.IntegerField(
+    contact_number = models.CharField(
+        max_length=20,
         null=True,
         unique=False,
         blank=True,
