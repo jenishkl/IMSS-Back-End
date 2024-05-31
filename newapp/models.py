@@ -1,3 +1,6 @@
+import os
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.base_user import BaseUserManager
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -27,14 +30,17 @@ class MainCategory(models.Model):
         max_length=50,
         blank=True,
     )
-    name = models.CharField(unique=True, null=False, max_length=50, blank=False)
-    unique_name = models.CharField(unique=True, null=False, max_length=50, blank=False)
+    name = models.CharField(unique=True, null=False,
+                            max_length=50, blank=False)
+    unique_name = models.CharField(
+        unique=True, null=False, max_length=50, blank=False)
     image = models.ImageField(
         unique=False, max_length=200, blank=True, null=True, upload_to="MainCategoryImg"
     )
-    index=models.IntegerField(null=True,
-        unique=False,
-        blank=True,)
+    index = models.IntegerField(null=True,
+                                unique=False,
+                                blank=True,)
+
     class Meta:
         managed = True
         db_table = "maincategory"
@@ -64,10 +70,6 @@ class CategoryImage(models.Model):
     class Meta:
         managed = True
         db_table = "main_category_image"
-
-
-from django.contrib.auth.base_user import BaseUserManager
-from django.utils.translation import gettext_lazy as _
 
 
 class CustomUserManager(BaseUserManager):
@@ -118,8 +120,10 @@ class Location(models.Model):
         max_length=50,
         blank=True,
     )
-    name = models.CharField(unique=True, null=False, max_length=50, blank=False)
-    unique_name = models.CharField(unique=True, null=False, max_length=50, blank=False)
+    name = models.CharField(unique=True, null=False,
+                            max_length=50, blank=False)
+    unique_name = models.CharField(
+        unique=True, null=False, max_length=50, blank=False)
 
     class Meta:
         managed = True
@@ -134,9 +138,6 @@ class Location(models.Model):
         self.unique_name = uniqueName
         # call the parent's save() method
         super(Location, self).save(*args, **kwargs)
-
-
-import os
 
 
 def get_upload_path(instance, filename):
@@ -164,25 +165,28 @@ class CustomUser(AbstractUser):
     is_customer = models.BooleanField(default=True)
     shopName = models.CharField(
         unique=False, null=True, max_length=50, blank=True,
-        error_messages ={
-                    "unique":"unique."
-                    }
+        error_messages={
+            "unique": "unique."
+        }
     )
     unique_shopName = models.CharField(
         null=True, max_length=50, blank=True, unique=False,
     )
-    shop_logo = models.ImageField(blank=True, null=True, upload_to=get_upload_path)
+    shop_logo = models.ImageField(
+        blank=True, null=True, upload_to=get_upload_path)
     background_image = models.ImageField(
         unique=False, blank=True, null=True, upload_to=banner_upload_path
     )
     location = models.ForeignKey(
         Location, null=True, blank=True, on_delete=models.SET_NULL
     )
-    address = models.CharField(unique=False, null=True, max_length=50, blank=True)
+    address = models.CharField(
+        unique=False, null=True, max_length=50, blank=True)
     lat = models.FloatField(unique=False, null=True, blank=True)
     long = models.FloatField(unique=False, null=True, blank=True)
     delivery_charge = models.FloatField(unique=False, null=True, blank=True)
-    about = models.CharField(unique=False, null=True, max_length=100, blank=True)
+    about = models.CharField(unique=False, null=True,
+                             max_length=100, blank=True)
     main_category = models.ManyToManyField(MainCategory)
     contact_number = models.CharField(
         max_length=20,
@@ -195,13 +199,15 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
+
     class Meta:
-            unique_together = [['email']]
-            # error_messages = {
-            #     'email': {
-            #         'unique': _("This email address is already in use."),
-            #     }
-            # }
+        unique_together = [['email']]
+        # error_messages = {
+        #     'email': {
+        #         'unique': _("This email address is already in use."),
+        #     }
+        # }
+
     def __str__(self):
         return str(self.id)
 
@@ -209,11 +215,12 @@ class CustomUser(AbstractUser):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
         print(self, "DATA")
-        if(self.shopName):
+        if (self.shopName):
             self.unique_shopName = (
-                str(self.shopName).replace(" ", "").replace("/", "-").lower()+"_"+str(self.id)
+                str(self.shopName).replace(" ", "").replace(
+                    "/", "-").lower()+"_"+str(self.id)
             )
-        
+
         # self.pop("password2")
         # call the parent's save() method
         # if self.company_logo is not None:
@@ -264,62 +271,17 @@ class CustomUser(AbstractUser):
     #     db_table = 'auth_user'
 
 
-#     class Meta:
-#         managed = True
-#         db_table = 'ShopProfile'
-
-
-# class UserAccountManager(BaseUserManager):
-#     def create_user(self, email, name, password=None):
-#         if not email:
-#             raise ValueError('Users must have an email address')
-
-#         email = self.normalize_email(email)
-#         email = email.lower()
-
-#         user = self.model(
-#             email=email,
-#             name=name
-#         )
-
-#         user.set_password(password)
-#         user.save(using=self._db)
-
-#         return user
-
-#     def create_realtor(self, email, name, password=None):
-#         user = self.create_user(email, name, password)
-
-#         user.is_realtor = True
-#         user.save(using=self._db)
-
-#         return user
-
-#     def create_superuser(self, email, name, password=None):
-#         user = self.create_user(email, name, password)
-
-#         user.is_superuser = True
-#         user.is_shop = True
-
-#         user.save(using=self._db)
-
-#         return user
-
-# class CustomUser(AbstractUser,PermissionsMixin):
-#   #Boolean fields to select the type of account.
-#     email = models.EmailField(max_length=255, unique=True)
-#     is_shop = models.BooleanField(default=False)
-#     is_customer = models.BooleanField(default=False)
-
-
-#     # class meta(AbstractUser.Meta):
-#     #     swappable = "AUTH_USER_MODEL"
-
-
-#     objects = UserAccountManager()
-
-#     USERNAME_FIELD = 'email'
-#     REQUIRED_FIELDS = ['name']
-
-#     def __str__(self):
-#         return self.email
+class ShopLikes(models.Model):
+    shop = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name='like_shop')
+    customer = models.ForeignKey(CustomUser, null=True, blank=True,
+                                 on_delete=models.SET_NULL, related_name='like_customer')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_like=models.BooleanField(default=False)
+    is_follow=models.BooleanField(default=False)
+    
+    class Meta:
+        managed = True
+        db_table = 'shop_likes'
+        unique_together = ('shop', 'customer')  # Ensure uniqueness

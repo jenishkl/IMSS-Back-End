@@ -37,7 +37,7 @@ from newapp.view_s.productView import (
 from newapp.view_s.mainCategoryView import getCategory, filterMainCategory
 from newapp.view_s.shopViews import edit_shop, get_shops, create_shop, ShopUpdateView, getShop
 from newapp.view_s.commonViews import notifications
-from newapp.view_s.checkoutViews import getCheckOut, addKart, getKart, createOrder, getOrders, kartStatusChange,changeOrderStatus, viewOrder
+from newapp.view_s.checkoutViews import getCheckOut, addKart, getKart, createOrder, getOrders, kartStatusChange, changeOrderStatus, viewOrder
 from django.conf.urls.static import static
 from django.conf import settings
 from rest_framework import routers
@@ -47,6 +47,7 @@ router = routers.DefaultRouter()
 # router.register('product', views.ProductView, 'product')
 router.register("maincategory", views.MainCategoryView, "maincategory")
 router.register("shopregister", views.ShopRegisterView, "shopregister")
+router.register("ShopLikesView", views.ShopLikesView, "ShopLikesView")
 router.register("shop", ShopUpdateView, "shop")
 router.register("products", ProductsView, "products")
 router.register("location", LocationView, "location")
@@ -110,6 +111,11 @@ urlpatterns = [
     path("changeOrderStatus/", changeOrderStatus),
     path("kartStatusChange/", kartStatusChange),
     path("viewOrder/", viewOrder),
+
+
+
+    path("addLike/", views.addLike),
+    path("addFollow/", views.addFollow),
 
 
     path("notifications/", notifications),

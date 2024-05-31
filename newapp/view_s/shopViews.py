@@ -1,3 +1,6 @@
+from rest_framework import status, viewsets
+import math
+import os
 import logging
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -7,7 +10,7 @@ from newapp.serializers.shopSerializers import (
 )
 from django.db.models import Q, F, ExpressionWrapper, FloatField, Value, CharField
 from django.db.models.functions import Power, Sin, Cos, ASin, Sqrt
-from newapp.models import MainCategory, CategoryImage, CustomUser, Location
+from newapp.models import MainCategory, CategoryImage, CustomUser, Location, ShopLikes
 from newapp.serializer import (
     MainCategorySerializer,
     MainCategorySerializer2,
@@ -21,17 +24,12 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 
 User = get_user_model()
-import os
-import math
 logger = logging.getLogger(__name__)
-from rest_framework import status, viewsets
-
 
 
 class ShopUpdateView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = ShopUpdateSerializer
-
 
 
 @api_view(["GET"])
@@ -51,19 +49,20 @@ def create_shop(request):
         email = request.data.get("email")
         password = request.data.get("password")
         password2 = request.data.get("password2")
-        if(password!=password2):
+        if (password != password2):
             raise Exception('Password did not match')
-        
-        location_instance = Location.objects.get(pk=request.data['shop']['location'])
+
+        location_instance = Location.objects.get(
+            pk=request.data['shop']['location'])
 
 # Create the User instance with the location_instance
         del request.data['shop']['location']
-        
-        user =User.objects.create(location=location_instance,is_shop=True,**request.data['shop']
-                                  
-            # username=username,
-            # email=email,
-            )
+
+        user = User.objects.create(location=location_instance, is_shop=True, **request.data['shop']
+
+                                   # username=username,
+                                   # email=email,
+                                   )
         # print(password)
         # user.set_password(password)
         user.main_category.set(request.data["main_category"])
@@ -71,15 +70,16 @@ def create_shop(request):
         # serialized_data = ShopCreateSerializer()
         return Response("user")
     except Exception as e:
-        return Response({"message": str(e) }, status=400)
+        return Response({"message": str(e)}, status=400)
 
 
 @api_view(["PUT"])
 def edit_shop(request):
     try:
-        query =User.objects.all()
-        serialized_data = ShopUpdateSerializer(query,data=request.data,partial=True)
-        if(serialized_data.is_valid()):
+        query = User.objects.all()
+        serialized_data = ShopUpdateSerializer(
+            query, data=request.data, partial=True)
+        if (serialized_data.is_valid()):
             serialized_data.save()
             return Response(serialized_data.data)
 
@@ -98,7 +98,7 @@ def edit_shop(request):
         # old_instance.save()
         # serialized_data = ShopUpdateSerializer(old_instance).data
     except Exception as e:
-        return Response({'error':str(e)}, status=400)
+        return Response({'error': str(e)}, status=400)
 
 
 @api_view(["GET"])
@@ -113,7 +113,7 @@ def get_shops(request):
         category = request.GET.get("category")
         address = request.GET.get("address")
         lat = request.GET.get("lat")
-        lon1 = request.GET.get("lon")
+        lng = request.GET.get("lng")
         is_customer = request.GET.get("is_customer")
         # print(lat,lon1,city)
         # city = reques
@@ -132,7 +132,8 @@ def get_shops(request):
             if location:
                 target_categories = Location.objects.get(unique_name=location)
                 location_query = Q(location=target_categories)
-                target_categories = Location.objects.filter(unique_name=location)
+                target_categories = Location.objects.filter(
+                    unique_name=location)
                 for obj in target_categories:
                     location_query |= Q(location=obj)
                 while target_categories.exists():
@@ -144,9 +145,11 @@ def get_shops(request):
                 query = query.filter(location_query)
 
             if category:
-                target_categories = MainCategory.objects.get(unique_name=category)
+                target_categories = MainCategory.objects.get(
+                    unique_name=category)
                 category_query = Q(main_category=target_categories)
-                target_categories = MainCategory.objects.filter(unique_name=category)
+                target_categories = MainCategory.objects.filter(
+                    unique_name=category)
                 for obj in target_categories:
                     category_query |= Q(main_category=obj)
                 while target_categories.exists():
@@ -165,9 +168,9 @@ def get_shops(request):
             if lat:
                 query = (
                     query.annotate(lat1=Value(lat, output_field=FloatField()))
-                    .annotate(lon1=Value(lon1, output_field=FloatField()))
+                    .annotate(lng=Value(lng, output_field=FloatField()))
                     .annotate(dLat=((F("lat") - F("lat1")) * math.pi / 180.0))
-                    .annotate(dLon=((F("long") - F("lon1")) * math.pi / 180.0))
+                    .annotate(dLon=((F("long") - F("lng")) * math.pi / 180.0))
                     .annotate(lat1=F("lat1") * math.pi / 180.0)
                     .annotate(lat2=F("lat") * math.pi / 180.0)
                     .annotate(
@@ -195,9 +198,36 @@ def get_shops(request):
         return Response({"message": "Got some data!", "data": str(e)}, status=400)
 
 
-
-
 @api_view(["GET"])
-def getShop(request,pk):
-    query= User.objects.filter(id=pk).values().first()
+def getShop(request, pk):
+    lat = request.GET.get("lat")
+    lng = request.GET.get("lng")
+    query = User.objects.filter(id=pk)
+    query = (
+                    query.annotate(lat1=Value(lat, output_field=FloatField()))
+                    .annotate(lng=Value(lng, output_field=FloatField()))
+                    .annotate(dLat=((F("lat") - F("lat1")) * math.pi / 180.0))
+                    .annotate(dLon=((F("long") - F("lng")) * math.pi / 180.0))
+                    .annotate(lat1=F("lat1") * math.pi / 180.0)
+                    .annotate(lat2=F("lat") * math.pi / 180.0)
+                    .annotate(
+                        a=(
+                            Power(Sin(F("dLat") / 2), 2)
+                            + Power(Sin(F("dLon") / 2), 2)
+                            * Cos(F("lat1") * Cos(F("lat2")))
+                        )
+                    )
+                    .annotate(c=2 * ASin(Sqrt(F("a"))))
+                    .annotate(Km=6371 * F("c"))
+                    # .filter(km)
+                ).values().first()
+    dd = ShopLikes.objects.filter(
+        Q(shop=pk) & Q(customer=request.user.id)).values().first()
+    if (dd):
+        query['is_like'] = dd['is_like']
+        query['is_follow'] = dd['is_follow']
+    query['like_count'] = ShopLikes.objects.filter(
+        Q(shop=pk) & Q(is_like=True)).count()
+    query['follow_count'] = ShopLikes.objects.filter(
+        Q(shop=pk) & Q(is_follow=True)).count()
     return Response(query)

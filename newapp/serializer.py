@@ -1,4 +1,4 @@
-from .models import MainCategory, CategoryImage,  CustomUser, Location
+from .models import MainCategory, CategoryImage,  CustomUser, Location,ShopLikes
 from newapp.model_s.productModels import Products
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
@@ -271,3 +271,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
 
         return "toke"
+    
+    
+
+class ShopLikesSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ShopLikes
+        fields = "__all__"

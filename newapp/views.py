@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from newapp.permissions import IsShop
 from rest_framework.views import APIView
-from .models import MainCategory, CategoryImage, CustomUser, Location
+from .models import MainCategory, CategoryImage, CustomUser, Location, ShopLikes
 from newapp.model_s.productModels import Products
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view
@@ -28,6 +28,8 @@ from .serializer import (
     ShopSerializer,
     ProductsSerializer,
     NestedCategorySerializer,
+    ShopLikesSerializer
+
 )
 from rest_framework import status, viewsets
 from django.shortcuts import get_object_or_404
@@ -345,116 +347,37 @@ class ProductsView(viewsets.ModelViewSet):
     serializer_class = ProductsSerializer
 
 
-# class LocationView(viewsets.ModelViewSet):
-#     queryset = Location.objects.all()
-#     # serializer_class=LocationSerializer
-
-#     def list(self, request):
-#         child_category = Location.objects.get(pk=4)
-#         ancestors = child_category.get_ancestors()
-#         values_list = []
-
-# # Iterate over the queryset and append values to the list
-#         for obj in ancestors:
-#             values_list.append(obj.__dict__)
-
-#         print(values_list)
-#         # serializer_data  = NestedLocationSerializer(ancestors)
-#         # To retrieve the parent categories as a list of objects or their names:
-#         ancestor_categories = list(ancestors)
-#         return Response("Sss")
-#         # ancestor_names = [category.name for category in ancestors]
+class ShopLikesView(viewsets.ModelViewSet):
+    queryset = ShopLikes.objects.all()
+    serializer_class = ShopLikesSerializer
 
 
-# @api_view(["GET"])
-# def get_shops(request):
-#     try:
-#         print(request, "REQUEST")
-#         # city = request.GET.get('city')
-#         # state = request.GET.get('state')
-#         location = None
-#         unique_name = request.GET.get("unique_name")
-#         location = request.GET.get("location")
-#         category = request.GET.get("category")
-#         address = request.GET.get("address")
-#         lat = request.GET.get("lat")
-#         lon1 = request.GET.get("lon")
-#         # print(lat,lon1,city)
-#         # city = reques
-#         if request.method == "GET":
-#             #   a = (pow(math.sin(dLat / 2), 2) +
-#             #         pow(math.sin(dLon / 2), 2) *
-#             #             math.cos(lat1) * math.cos(lat2));
-#             #     rad = 6371
-#             #     c = 2 * math.asin(math.sqrt(a))
-#             #  dLat = (lat2 - lat1) * math.pi / 180.0
-#             #  dLon = (lon2 - lon1) * math.pi / 180.0
-#             # query = User.objects.filter(Q(main_category__name__icontains="Jenish K")|Q(main_category__parent__name__icontains="Jenish K"))
-#             query = User.objects.all()
-#             if unique_name:
-#                 query = query.get(unique_name=unique_name)
-#             if location:
-#                 target_categories = Location.objects.get(unique_name=location)
-#                 location_query = Q(location=target_categories)
-#                 target_categories = Location.objects.filter(unique_name=location)
-#                 for obj in target_categories:
-#                     location_query |= Q(location=obj)
-#                 while target_categories.exists():
-#                     target_categories = Location.objects.filter(
-#                         parent__in=target_categories
-#                     )
-#                     for obj in target_categories:
-#                         location_query |= Q(location=obj)
-#                 query = query.filter(location_query)
+@csrf_exempt
+@api_view(["POST"])
+def addLike(request):
+    data = {'shop': request.data['shop'],
+            'customer': request.user.id, "is_like": request.data["is_like"]}
+    query = ShopLikes.objects.filter(
+        Q(shop=request.data['shop']) & Q(customer=request.user.id)).first()
+    if(query):
+         serializer_data = ShopLikesSerializer(query,data=data)
+    else:
+        serializer_data = ShopLikesSerializer(data=data)
+    if (serializer_data.is_valid()):
+        serializer_data.save()
+    return Response(serializer_data.data)
 
-#             if category:
-#                 target_categories = MainCategory.objects.get(unique_name=category)
-#                 category_query = Q(main_category=target_categories)
-#                 target_categories = MainCategory.objects.filter(unique_name=category)
-#                 for obj in target_categories:
-#                     category_query |= Q(main_category=obj)
-#                 while target_categories.exists():
-#                     target_categories = MainCategory.objects.filter(
-#                         parent__in=target_categories
-#                     )
-#                     for obj in target_categories:
-#                         category_query |= Q(main_category=obj)
-#                         if location:
-#                             category_query &= location_query
-#                 query = query.filter(category_query)
-
-#             # sdata = RegisterSerializer(query, many=True)
-
-#             # query = User.objects.filter(Q(city__unique_name=city) | Q(state__name=state)|Q(address__contains=address))
-#             if lat:
-#                 query = (
-#                     query.annotate(lat1=Value(lat, output_field=FloatField()))
-#                     .annotate(lon1=Value(lon1, output_field=FloatField()))
-#                     .annotate(dLat=((F("lat") - F("lat1")) * math.pi / 180.0))
-#                     .annotate(dLon=((F("long") - F("lon1")) * math.pi / 180.0))
-#                     .annotate(lat1=F("lat1") * math.pi / 180.0)
-#                     .annotate(lat2=F("lat") * math.pi / 180.0)
-#                     .annotate(
-#                         a=(
-#                             Power(Sin(F("dLat") / 2), 2)
-#                             + Power(Sin(F("dLon") / 2), 2)
-#                             * Cos(F("lat1") * Cos(F("lat2")))
-#                         )
-#                     )
-#                     .annotate(c=2 * ASin(Sqrt(F("a"))))
-#                     .annotate(Km=6371 * F("c"))
-#                     # .filter(km)
-#                 )
-#                 # .annotate(lon2=Value(F("long"),output_field=FloatField()))
-#                 # .annotate(lat2=Value(F("lat"),output_field=FloatField()))
-#                 # lat1 = (lat1) * math.pi / 180.0
-#                 # lat2 = (lat2) * math.pi / 180.0
-#                 # sdata = RegisterSerializer(query, many=True)
-#                 print(query[0].Km, "KM")
-#                 # return Response(sdata.data)
-#         sdata = RegisterSerializer(query, many=True)
-
-#         return Response(sdata.data)
-#         return Response({"message": "Hello, world!"})
-#     except Exception as e:
-#         return Response({"message": "Got some data!", "data": str(e)}, status=400)
+@csrf_exempt
+@api_view(["POST"])
+def addFollow(request):
+    data = {'shop': request.data['shop'],
+            'customer': request.user.id, "is_follow": request.data["is_follow"]}
+    query = ShopLikes.objects.filter(
+        Q(shop=request.data['shop']) & Q(customer=request.user.id)).first()
+    if(query):
+         serializer_data = ShopLikesSerializer(query,data=data)
+    else:
+        serializer_data = ShopLikesSerializer(data=data)
+    if (serializer_data.is_valid()):
+        serializer_data.save()
+    return Response(serializer_data.data)
