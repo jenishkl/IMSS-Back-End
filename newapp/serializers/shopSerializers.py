@@ -15,9 +15,11 @@ class ShopCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         required=True, error_messages={"required": "User Name is Required"}
     )
+    
     email = serializers.EmailField()
-    # password=serializers.CharField(validators=[validate_password],write_only=True)
+    # password=serializers.CharField(validators=[validate_password],write_only=True)-
     password = serializers.CharField(write_only=True)
+    
     password2 = serializers.CharField(write_only=True, required=False)
     # unique_shopName = serializers.CharField(read_only=True)
     is_shop = serializers.BooleanField()

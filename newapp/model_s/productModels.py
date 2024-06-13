@@ -1,3 +1,5 @@
+from newapp.model_s.shopCategoryModel import MyCategory
+from newapp.models import CustomUser, MainCategory
 from django.db import models
 import os
 choices = [
@@ -12,8 +14,8 @@ choices = [
     ("Y", "Yard"),
     ("CS", "CustomSizes"),
 ]
-from newapp.models import CustomUser, MainCategory
-from newapp.model_s.shopCategoryModel import MyCategory
+
+
 class Products(models.Model):
     shop_name = models.ForeignKey(
         CustomUser, unique=False, on_delete=models.PROTECT, related_name="shop_name"
@@ -30,11 +32,11 @@ class Products(models.Model):
     original_price = models.FloatField()
     selling_price = models.FloatField()
     stock = models.FloatField()
-    aspectRatio=models.FloatField(default=1)
+    aspectRatio = models.FloatField(default=1)
     is_have_size = models.BooleanField(default=False)
     is_deliverable = models.BooleanField(default=False)
-    deliverable_range = models.FloatField(null=True,blank=True)
-    delivery_charge_per_km = models.FloatField(null=True,blank=True)
+    deliverable_range = models.FloatField(null=True, blank=True)
+    delivery_charge_per_km = models.FloatField(null=True, blank=True)
     measurement = models.CharField(
         max_length=100, choices=choices, unique=False, blank=True, null=True
     )
@@ -56,6 +58,7 @@ class Products(models.Model):
         # on_delete=models.SET_NULL,
         # related_name="my_category",
     )
+
     class Meta:
         managed = True
         db_table = "products"
@@ -64,7 +67,8 @@ class Products(models.Model):
         # Using the regular field, set the value of the read-only field.
         # self.slug = slugify(self.title)
         print(self, "DATA")
-        self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
+        self.unique_name = str(self.name).replace(
+            " ", "_").replace("/", "-").lower()+"_"+str(self.id)
         # call the parent's save() method
         super(Products, self).save(*args, **kwargs)
         # self.unique_name = str(self.name).replace(" ", "_").replace("/", "-").lower()+"_"+str(self.id)
@@ -91,8 +95,6 @@ class Products(models.Model):
     # endDate=serializers.DateTimeField(required=True,allow_null=False,error_messages = {"required":"Data should be unique"} )
 
 
-
-
 def get_upload_path(instance, filename):
     print(instance, "instance")
     print(filename, "filename")
@@ -100,19 +102,20 @@ def get_upload_path(instance, filename):
 
 
 class ProductImages(models.Model):
-      product = models.ForeignKey(Products,unique=False, on_delete=models.CASCADE, related_name="images")
-      image = models.ImageField(
+    product = models.ForeignKey(
+        Products, unique=False, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(
         unique=False, blank=True, null=True, upload_to=get_upload_path
     )
-      aspect_ratio=models.FloatField(unique=False,null=True,blank=True)
-      primary=models.BooleanField()
-      index=models.IntegerField(null=True ,blank=True)
+    aspect_ratio = models.FloatField(unique=False, null=True, blank=True)
+    primary = models.BooleanField()
+    index = models.IntegerField(null=True, blank=True)
 
-      def __str__(self):
-            return str(self.product.shop_name.id)
-    
-      def save(self, *args, **kwargs):
-         if self.image is not None and self.pk is not None:
+    def __str__(self):
+        return str(self.product.shop_name.id)
+
+    def save(self, *args, **kwargs):
+        if self.image is not None and self.pk is not None:
             old_instance = ProductImages.objects.get(pk=self.pk)
             old_image = old_instance.image
             new_image = self.image
@@ -122,5 +125,5 @@ class ProductImages(models.Model):
                 # Delete the old image file from storage
                 if os.path.isfile(old_image.path):
                     os.remove(old_image.path)
-                
-         super(ProductImages, self).save(*args, **kwargs)
+
+        super(ProductImages, self).save(*args, **kwargs)

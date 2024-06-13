@@ -278,9 +278,9 @@ class ShopLikes(models.Model):
                                  on_delete=models.SET_NULL, related_name='like_customer')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_like=models.BooleanField(default=False)
-    is_follow=models.BooleanField(default=False)
-    
+    is_like = models.BooleanField(default=False)
+    is_follow = models.BooleanField(default=False)
+
     class Meta:
         managed = True
         db_table = 'shop_likes'

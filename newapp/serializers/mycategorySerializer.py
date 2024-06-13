@@ -7,7 +7,8 @@ User = get_user_model()
 
 
 class CreateMyCategorySerializer(serializers.ModelSerializer):
-    unique_name = serializers.CharField(read_only=True,required=False)
+    unique_name = serializers.CharField(read_only=True, required=False)
+
     class Meta:
         model = MyCategory
         fields = "__all__"
@@ -30,11 +31,12 @@ class CreateMyCategorySerializer(serializers.ModelSerializer):
     #     user.set_password(validated_data["password"])
     #     user.save()
     #     return user
-    
+
+
 class MyCategorySerializer2(serializers.ModelSerializer):
-    unique_name = serializers.CharField(read_only=True,required=False)
+    unique_name = serializers.CharField(read_only=True, required=False)
     image = serializers.SerializerMethodField(
-        "get_image_field_url", required=False,read_only=True,)
+        "get_image_field_url", required=False, read_only=True,)
     # name = serializers.CharField(read_only=True)
     # parent = serializers.PrimaryKeyRelatedField(
     #     queryset=MyCategory.objects.all(), required=False
@@ -45,6 +47,7 @@ class MyCategorySerializer2(serializers.ModelSerializer):
         model = MyCategory
         fields = "__all__"
         # depth = 10
+
     def get_image_field_url(self, obj):
         if obj.image:
             base_url = "http://127.0.0.1:8000/"  # Replace with your base URL
@@ -93,7 +96,8 @@ class MyCategorySerializer(serializers.ModelSerializer):
             print(getattr(obj, "parent").id, "Pa2")
         if True:
             if getattr(obj, "parent") is not None:
-                parent = MyCategory.objects.filter(parent=getattr(obj, "parent").id)
+                parent = MyCategory.objects.filter(
+                    parent=getattr(obj, "parent").id)
                 print(parent, "options")
                 # if  == 0:
                 #     return 0
@@ -123,13 +127,14 @@ class MyCategorySerializer(serializers.ModelSerializer):
 
             return MyCategorySerializer(parent, many=False).data
 
+
 class NestedMyCategorySerializer(serializers.Serializer):
     id = serializers.IntegerField()
     parent = serializers.PrimaryKeyRelatedField(
         queryset=MyCategory.objects.all(), required=False
     )
-    name = serializers.CharField(source="name")
-    unique_name = serializers.CharField(read_only=True, source="unique_name")
+    name = serializers.CharField()
+    unique_name = serializers.CharField(read_only=True, )
     children = serializers.SerializerMethodField("get_children")
 
     def get_children(self, obj):
